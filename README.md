@@ -1,1 +1,3 @@
 # runtime
+
+当前仓库主要是支持sealos的rootfs，当前支持docker和containerd
