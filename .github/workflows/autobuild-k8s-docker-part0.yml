@@ -13,7 +13,7 @@ env:
   part: 0
   allBuild: false
   registry: docker.io
-  repo: ${{ secrets.REPOSITORY }}
+  repo: ${{ secrets.D_REGISTRY_NAME }}
   sealosPatch: ${{ github.event.inputs.sealosPatch }}
   criType: docker
 jobs:
@@ -77,8 +77,8 @@ jobs:
 
       - name: Auto build image
         env:
-          username: ${{ secrets.REPOSITORY }}
-          password: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.D_REGISTRY_NAME }}
+          password: ${{ secrets.D_REGISTRY_TOKEN }}
           arch: ${{ matrix.arch }}
           kubeVersion: ${{ matrix.version }}
         run: .github/scripts/kubernetes.sh
@@ -103,8 +103,8 @@ jobs:
         run: .github/scripts/download.sh
       - name: Manifest Image
         env:
-          username: ${{ secrets.REPOSITORY }}
-          password: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.D_REGISTRY_NAME }}
+          password: ${{ secrets.D_REGISTRY_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh
 
