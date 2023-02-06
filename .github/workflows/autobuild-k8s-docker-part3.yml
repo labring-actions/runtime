@@ -1,4 +1,4 @@
-name: Auto build image docker for k8s 1.24-25
+name: docker for k8s 1.24-25
 on:
   workflow_dispatch:
     inputs:
@@ -18,7 +18,7 @@ env:
   criType: docker
 jobs:
   resolve-issue-sealoslatest:
-    if: startswith(github.event.comment.body, '/imagebuild_kube') || startswith(github.event.comment.body, '/imagebuild_docker_k8s') || startswith(github.event.comment.body, '/single_imagebuild_docker_k8s_part3') || contains(github.event.inputs.sealosPatch, 'sealos')
+    if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/docker') || startswith(github.event.comment.body, '/single_part3') || startswith(github.event.comment.body, '/single_docker_part3') || contains(github.event.inputs.sealosPatch, 'sealos')
     runs-on: ubuntu-latest
     outputs:
       sealoslatest: ${{ steps.set-sealoslatest.outputs.sealoslatest }}

@@ -1,4 +1,4 @@
-name: Auto build image for k8s 1.21-23
+name: containerd for k8s 1.21-23
 on:
   workflow_dispatch:
     inputs:
@@ -18,7 +18,7 @@ env:
   criType: containerd
 jobs:
   resolve-issue-sealoslatest:
-    if: startswith(github.event.comment.body, '/imagebuild_kube') || startswith(github.event.comment.body, '/imagebuild_k8s') || startswith(github.event.comment.body, '/single_imagebuild_k8s_part2') || contains(github.event.inputs.sealosPatch, 'sealos')
+    if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/containerd') || startswith(github.event.comment.body, '/single_part2') || startswith(github.event.comment.body, '/single_containerd_part2') || contains(github.event.inputs.sealosPatch, 'sealos')
     runs-on: ubuntu-latest
     outputs:
       sealoslatest: ${{ steps.set-sealoslatest.outputs.sealoslatest }}
@@ -121,4 +121,4 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            detail log please view [autobuild-k8s-part2](https://github.com/labring-actions/cluster-image/actions/workflows/autobuild-k8s-part2.yml)
+            detail log please view [autobuild-k8s-containerd-part2](https://github.com/labring-actions/cluster-image/actions/workflows/autobuild-k8s-containerd-part2.yml)

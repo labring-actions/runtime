@@ -8,15 +8,17 @@ assignees: ''
 
 ```
 Usage:
-   /imagebuild_kube [sealosVersion]             # all containerd + all docker (increment)
-   /imagebuild_k8s [sealosVersion]              # all containerd
-   /imagebuild_docker_k8s [sealosVersion]       # all docker
-   /single_imagebuild_k8s_part1 [sealosVersion]        # containerd for part1
-   /single_imagebuild_docker_k8s_part1 [sealosVersion] # docker for part1
+   /kube [sealosVersion]             # all containerd + all docker (increment)
+   /containerd [sealosVersion]              # all containerd
+   /docker [sealosVersion]       # all docker
+   /single_part4 [sealosVersion] # all containerd + all docker (increment) for part4
+   /single_containerd_part4 [sealosVersion]        # containerd for part4
+   /single_docker_part4 [sealosVersion] # docker for part4
 Example:
-   /imagebuild_kube 4.1.3
-   /imagebuild_k8s 4.1.3
-   /imagebuild_docker_k8s 4.1.3
-   /single_imagebuild_k8s_part1 4.1.3
-   /single_imagebuild_docker_k8s_part1 4.1.3
+   /kube 4.1.5
+   /containerd 4.1.5
+   /docker 4.1.5
+   /single_part4 4.1.5
+   /single_containerd_part4 4.1.5
+   /single_docker_part4 4.1.5
 ```
