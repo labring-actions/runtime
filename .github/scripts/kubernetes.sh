@@ -69,7 +69,7 @@ if [[ "${kube_major//./}" -ge 126 ]]; then
   esac
 fi
 
-cp -a rootfs/* "$ROOT"
+cp -a k8s/* "$ROOT"
 cp -a "$CRI_TYPE"/* "$ROOT"
 cp -a registry/* "$ROOT"
 
