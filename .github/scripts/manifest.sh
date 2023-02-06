@@ -73,20 +73,20 @@ else
 fi
 
 until [[ $(sudo buildah images | grep -c "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE") -eq ${#IMAGE_PUSH_NAME[@]} ]]; do
-for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
-  sudo buildah manifest create "$IMAGE_NAME"
-  sudo buildah manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-amd64"
-  sudo buildah manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-arm64"
-  if [[ $(sudo buildah inspect "$IMAGE_NAME" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -ne 2 ]]; then
-    sudo buildah manifest inspect "$IMAGE_NAME" | yq -CP
-    echo "ERROR::TARGETARCH for sealos build"
-    exit $ERR_CODE
-  else
-    sudo buildah login -u "$IMAGE_HUB_USERNAME" -p "$IMAGE_HUB_PASSWORD" "$IMAGE_HUB_REGISTRY" &&
-      sudo buildah manifest push --all "$IMAGE_NAME" docker://"$IMAGE_NAME" && echo "$IMAGE_NAME push success"
-  fi
-done
-sleep 3
+  for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
+    sudo buildah manifest create "$IMAGE_NAME"
+    sudo buildah manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-amd64"
+    sudo buildah manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-arm64"
+    if [[ $(sudo buildah inspect "$IMAGE_NAME" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -ne 2 ]]; then
+      sudo buildah manifest inspect "$IMAGE_NAME" | yq -CP
+      echo "ERROR::TARGETARCH for sealos build"
+      exit $ERR_CODE
+    else
+      sudo buildah login -u "$IMAGE_HUB_USERNAME" -p "$IMAGE_HUB_PASSWORD" "$IMAGE_HUB_REGISTRY" &&
+        sudo buildah manifest push --all "$IMAGE_NAME" docker://"$IMAGE_NAME" && echo "$IMAGE_NAME push success"
+    fi
+  done
+  sleep 3
 done
 
 sudo buildah images

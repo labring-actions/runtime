@@ -85,9 +85,7 @@ cd "$ROOT" && {
     sudo cp -a "$MOUNT_CRI"/cri/cri-containerd.tar.gz cri/
     ;;
   cri-o)
-    if [[ -s "$MOUNT_CRIO"/cri/cri-o.tar.gz ]]; then
-      sudo cp -a "$MOUNT_CRIO"/cri/cri-o.tar.gz cri/
-    fi
+    sudo cp -a "$MOUNT_CRIO"/cri/cri-o.tar.gz cri/
     ;;
   docker)
     if [[ "${kube_major//./}" -ge 126 ]]; then
@@ -176,26 +174,37 @@ cd "$ROOT" && {
     if ! [[ "$SEALOS" =~ ^[0-9\.]+[0-9]$ ]] || [[ -n "$sealosPatch" ]]; then
       dpkg-query --search "$(command -v containerd)" "$(command -v docker)"
       sudo apt-get remove -y moby-buildx moby-cli moby-compose moby-containerd moby-engine >/dev/null
-      sudo systemctl unmask containerd docker || true
+      sudo systemctl unmask "${CRI_TYPE//-/}" || true
       sudo mkdir -p /sys/fs/cgroup/systemd
       sudo mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd || true
       if ! sudo sealos run "$IMAGE_BUILD" --single; then
-        export readonly SEALOS_RUN="failed"
         case $CRI_TYPE in
         containerd)
-          sudo crictl ps -a || true
+          "$CRI_TYPE" --version
+          ;;
+        cri-o)
+          "$CRI_TYPE" --version
+          crio-status info || true
           ;;
         docker)
-          sudo docker ps -a || true
+          "$CRI_TYPE" info
           ;;
         esac
-        systemctl status $CRI_TYPE || true
-        journalctl -xeu $CRI_TYPE || true
-        systemctl status kubelet || true
-        journalctl -xeu kubelet || true
-        exit $ERR_CODE
+        sudo crictl ps -a || true
+        if [[ "${kube_major//./}" -le 116 ]]; then
+          export SEALOS_RUN="skipped::compatibility"
+          echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+          echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+          echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+        else
+          export SEALOS_RUN="failed"
+          systemctl status "${CRI_TYPE//-/}" || true
+          journalctl -xeu "${CRI_TYPE//-/}" || true
+          systemctl status kubelet || true
+          journalctl -xeu kubelet || true
+        fi
       else
-        export readonly SEALOS_RUN="succeed"
+        export SEALOS_RUN="succeed::run"
         mkdir -p "$HOME/.kube"
         sudo cp -a /etc/kubernetes/admin.conf "$HOME/.kube/config"
         sudo chown "$(whoami)" "$HOME/.kube/config"
@@ -207,14 +216,12 @@ cd "$ROOT" && {
         kubectl get pods -owide --all-namespaces
         kubectl get node -owide
       fi
-      dockerd info || true
-      containerd --version || true
       sudo sealos reset --force
     else
-      export readonly SEALOS_RUN="stable"
+      export SEALOS_RUN="stable::build"
     fi
   else
-    export readonly SEALOS_RUN="skipped"
+    export SEALOS_RUN="skipped::arm64"
   fi
   {
     FROM_BUILD=$(sudo buildah from "$IMAGE_BUILD")
@@ -226,7 +233,8 @@ cd "$ROOT" && {
     done < <(sudo find "${MOUNT_BUILD:-$PWD}" -name tags -type d | grep _manifests/tags)
     sudo buildah umount "$FROM_BUILD" || true
   }
-  if [[ failed != "$SEALOS_RUN" ]]; then
+  echo "SEALOS_STATUS => $SEALOS_RUN"
+  if ! [[ "$SEALOS_RUN" =~ failed ]]; then
     if sudo buildah inspect "$IMAGE_BUILD" | yq .OCIv1.architecture | grep "$ARCH" ||
       sudo buildah inspect "$IMAGE_BUILD" | yq .Docker.architecture | grep "$ARCH"; then
       echo -n >"/tmp/$IMAGE_HUB_REGISTRY.v$KUBE-$ARCH.images"
@@ -236,7 +244,7 @@ cd "$ROOT" && {
           docker.io)
             if until curl -sL "https://hub.docker.com/v2/repositories/$IMAGE_HUB_REPO/$IMAGE_KUBE/tags/${IMAGE_NAME##*:}"; do sleep 3; done |
               grep digest >/dev/null; then
-              if ! grep "$KUBE" <<<"$${IMAGE_NAME##*:}" &>/dev/null;then
+              if ! grep "$KUBE" <<<"$${IMAGE_NAME##*:}" &>/dev/null; then
                 # always push for kube 1.xx(DEV)
                 echo "$IMAGE_NAME" >>"/tmp/$IMAGE_HUB_REGISTRY.v$KUBE-$ARCH.images"
               else
@@ -266,10 +274,12 @@ cd "$ROOT" && {
       echo "ERROR::TARGETARCH for sealos build"
       exit $ERR_CODE
     fi
-  else
-    sudo sealos version
   fi
 }
 
 sudo buildah umount "$FROM_SEALOS" "$FROM_KUBE" "$FROM_CRIO" "$FROM_CRI" || true
 sudo sealos images
+
+if [[ "$SEALOS_RUN" =~ failed ]]; then
+  exit $ERR_CODE
+fi

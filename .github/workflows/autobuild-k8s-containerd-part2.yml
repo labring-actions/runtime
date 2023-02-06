@@ -121,4 +121,4 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            detail log please view [autobuild-k8s-containerd-part2](https://github.com/labring-actions/cluster-image/actions/workflows/autobuild-k8s-containerd-part2.yml)
+            detail log please view [autobuild-k8s-containerd-part2](https://github.com/labring-actions/runtime/actions/workflows/autobuild-k8s-containerd-part2.yml)
