@@ -19,7 +19,7 @@ env:
 jobs:
   resolve-issue-sealoslatest:
     if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/containerd') || startswith(github.event.comment.body, '/single_part1') || startswith(github.event.comment.body, '/single_containerd_part1') || contains(github.event.inputs.sealosPatch, 'sealos')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       sealoslatest: ${{ steps.set-sealoslatest.outputs.sealoslatest }}
     steps:
@@ -31,7 +31,7 @@ jobs:
           export commentbody="${{github.event.comment.body}}"
           .github/scripts/versions/versions_sealos.sh
   resolve-versions-arch:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       - resolve-issue-sealoslatest
     env:
@@ -45,7 +45,7 @@ jobs:
         id: set-versions
         run: .github/scripts/versions/versions_arch.sh
   resolve-versions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       - resolve-issue-sealoslatest
     env:
@@ -63,7 +63,7 @@ jobs:
     needs:
       - resolve-issue-sealoslatest
       - resolve-versions-arch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       sealoslatest: ${{ needs.resolve-issue-sealoslatest.outputs.sealoslatest }}
     strategy:
@@ -93,7 +93,7 @@ jobs:
       sealoslatest: ${{ needs.resolve-issue-sealoslatest.outputs.sealoslatest }}
     strategy:
       matrix: ${{ fromJson(needs.resolve-versions.outputs.matrix) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     permissions:
       issues: write
     steps:
@@ -112,7 +112,7 @@ jobs:
     needs:
       - build_manifest
     name: Auto add tips
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     permissions:
       issues: write
     steps:

@@ -28,7 +28,7 @@ mkdir -p .versions
 for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
   K8S_MD=${file##*/}
   case $K8S_MD in
-  CHANGELOG-1.1[5-7].md)
+  CHANGELOG-1.1[0-5].md)
     continue
     ;;
   esac
