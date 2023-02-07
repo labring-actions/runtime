@@ -12,29 +12,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 storage=${1:-/var/lib/crio}
-systemctl disable --now crio
-rm -rf /etc/cni/net.d/10-crio-bridge.conf
-rm -rf /usr/local/lib/systemd/system/crio.service
-systemctl daemon-reload
-rm -rf $storage
 
-rm -f /usr/local/bin/conmon
-rm -f /usr/local/bin/crictl
-rm -f /usr/local/bin/crio-status
-rm -f /usr/local/bin/crio
-rm -f /usr/local/bin/pinns
-rm -f /usr/local/bin/crun
-rm -f /usr/local/bin/runc
+check_service stop crio
 
-rm -f /etc/crictl.yaml
-rm -rf /etc/crio
-rm -rf /etc/containers
-rm -rf /var/lib/cni/networks/crio/
-rm -rf /run/crio
-rm -rf /var/log/crio/
-ldconfig
+tar xfz ../cri/cri-o.tar.gz
+echo Uninstalling CRI-O
+pushd cri-o >/dev/null || exit
+if [[ -s ../../cri/crio.files ]]; then
+  xargs <../../cri/crio.files rm -fv && date
+else
+  make uninstall
+fi
+popd >/dev/null || exit
+
+rm -rf "$storage"
 
 logger "clean crio success"

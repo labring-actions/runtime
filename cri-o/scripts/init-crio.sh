@@ -12,38 +12,41 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 registry_domain=${1:-sealos.hub}
 registry_port=${2:-5000}
 registry_username=${3:-}
 registry_password=${4:-}
 
-TARBALL=cri-o.tar.gz
-TMPDIR="$(mktemp -d)"
-trap 'rm -rf -- "$TMPDIR"' EXIT
-
-tar xfz ../cri/cri-o.tar.gz --strip-components=1 -C "$TMPDIR"
-pushd "$TMPDIR"
-echo Installing CRI-O
-./install
-popd
 # Use other network plugin, eg: calico.
-rm -rf /etc/cni/net.d/10-crio-bridge.conf
+rm -fv /etc/cni/net.d/*.conf
 
+tar xfz ../cri/cri-o.tar.gz
+echo Installing CRI-O
+pushd cri-o >/dev/null || exit
+if [[ -s ../../cri/install.crio ]]; then
+  bash -e ../../cri/install.crio && date
+else
+  make
+fi
+popd >/dev/null || exit
+
+mkdir -p /etc/crio/crio.conf.d
 cp ../etc/99-crio.conf /etc/crio/crio.conf.d/
 base64pwd=$(echo -n "${registry_username}:${registry_password}" | base64)
 logger "username: $registry_username, password: $registry_password, base64pwd: $base64pwd"
-cat >/etc/crio/config.json <<eof
+cat >/etc/crio/config.json <<EOF
 {
-        "auths": {
-                "$registry_domain:$registry_port": {
-                        "auth": "$base64pwd"
-                }
+    "auths":{
+        "$registry_domain:$registry_port":{
+            "auth":"$base64pwd"
         }
+    }
 }
-eof
+EOF
 
-systemctl enable --now crio.service
+check_service start crio
 check_status crio
+
 logger "init crio success"

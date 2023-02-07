@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 if ! command_exists cri-docker; then
   cp ../etc/cri-docker.service /etc/systemd/system/

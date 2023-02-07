@@ -48,6 +48,9 @@ case $CRI_TYPE in
 containerd)
   IMAGE_KUBE=kubernetes
   ;;
+cri-o)
+  IMAGE_KUBE=kubernetes-crio
+  ;;
 docker)
   IMAGE_KUBE=kubernetes-docker
   ;;

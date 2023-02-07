@@ -86,6 +86,8 @@ cd "$ROOT" && {
     ;;
   cri-o)
     sudo cp -a "$MOUNT_CRIO"/cri/cri-o.tar.gz cri/
+    sudo cp -a "$MOUNT_CRIO"/cri/install.crio cri/
+    sudo cp -a "$MOUNT_CRIO"/cri/crio.files cri/
     ;;
   docker)
     if [[ "${kube_major//./}" -ge 126 ]]; then
@@ -208,8 +210,10 @@ cd "$ROOT" && {
         mkdir -p "$HOME/.kube"
         sudo cp -a /etc/kubernetes/admin.conf "$HOME/.kube/config"
         sudo chown "$(whoami)" "$HOME/.kube/config"
-        # shellcheck disable=SC2046
-        kubectl taint nodes $(kubectl get nodes --no-headers -l node-role.kubernetes.io/control-plane= | awk '{print $1}') node-role.kubernetes.io/master- || true
+        kubectl get nodes --no-headers -oname | while read -r node; do kubectl get "$node" -o template='{{range .spec.taints}}{{.key}}{{"\n"}}{{end}}' | while read -r taint; do
+          # shellcheck disable=SC2086
+          kubectl taint ${node/\// } "$taint"-
+        done; done
         until ! kubectl get pods --no-headers --all-namespaces | grep -vE Running; do
           sleep 5
         done

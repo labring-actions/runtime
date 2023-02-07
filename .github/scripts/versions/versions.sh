@@ -27,9 +27,20 @@ rm -rf .versions
 mkdir -p .versions
 for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
   K8S_MD=${file##*/}
-  case $K8S_MD in
-  CHANGELOG-1.1[0-5].md)
-    continue
+  case $CRI_TYPE in
+  containerd | docker)
+    case $K8S_MD in
+    CHANGELOG-1.1[0-5].md)
+      continue
+      ;;
+    esac
+    ;;
+  cri-o)
+    case $K8S_MD in
+    CHANGELOG-1.1[0-9].md)
+      continue
+      ;;
+    esac
     ;;
   esac
   while IFS= read vKUBE; do
