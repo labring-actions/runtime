@@ -50,6 +50,8 @@ mkdir -p "$ROOT" "$PATCH"
   MOUNT_CRIO=$(sudo buildah mount "$FROM_CRIO")
   FROM_CRI=$(sudo buildah from "$IMAGE_CACHE_NAME:cri-$ARCH")
   MOUNT_CRI=$(sudo buildah mount "$FROM_CRI")
+  FROM_TOOLS=$(sudo buildah from "$IMAGE_CACHE_NAME:tools-$ARCH")
+  MOUNT_TOOLS=$(sudo buildah mount "$FROM_TOOLS")
 }
 
 if [[ "${kube_major//./}" -ge 126 ]]; then
@@ -82,14 +84,17 @@ cd "$ROOT" && {
   sudo cp -a "$MOUNT_CRI"/cri/libseccomp.tar.gz cri/
   case $CRI_TYPE in
   containerd)
+    IMAGE_KUBE=kubernetes
     sudo cp -a "$MOUNT_CRI"/cri/cri-containerd.tar.gz cri/
     ;;
   cri-o)
+    IMAGE_KUBE=kubernetes-${CRI_TYPE//-/}
     sudo cp -a "$MOUNT_CRIO"/cri/cri-o.tar.gz cri/
     sudo cp -a "$MOUNT_CRIO"/cri/install.crio cri/
     sudo cp -a "$MOUNT_CRIO"/cri/crio.files cri/
     ;;
   docker)
+    IMAGE_KUBE=kubernetes-${CRI_TYPE//-/}
     if [[ "${kube_major//./}" -ge 126 ]]; then
       sudo cp -a "$MOUNT_CRI"/cri/cri-dockerd.tgz cri/
     else
@@ -108,6 +113,7 @@ cd "$ROOT" && {
   esac
 
   sudo tar -xzf "$MOUNT_CRIO"/cri/crictl.tar.gz -C bin/
+  sudo cp -a "$MOUNT_TOOLS"/tools/helm bin/
   sudo cp -a "$MOUNT_KUBE"/bin/kubeadm bin/
   sudo cp -a "$MOUNT_KUBE"/bin/kubectl bin/
   sudo cp -a "$MOUNT_KUBE"/bin/kubelet bin/
@@ -120,34 +126,11 @@ cd "$ROOT" && {
   else
     cp -a "$PATCH"/* .
   fi
-  sudo chown -R "$(whoami)" bin cri opt
-  if ! rmdir "$PATCH" 2>/dev/null; then
-    ipvsImage="${sealosPatch%%/*}/labring/lvscare:$(find "registry" -type d | grep -E "tags/.+-$ARCH$" | awk -F/ '{print $NF}')"
-    rm -f images/shim/lvscareImage
-  else
-    ipvsImage="ghcr.io/labring/lvscare:v$SEALOS"
-  fi
-  echo "$ipvsImage" >images/shim/LvscareImageList
-
-  # replace
-  sed -i "s#__lvscare__#$ipvsImage#g;s/v0.0.0/v$KUBE/g" "Kubefile"
-  pauseImage=$(sudo grep /pause: "$MOUNT_KUBE/images/shim/DefaultImageList")
-  pauseImageName=${pauseImage#*/}
-  sed -i "s#__pause__#${pauseImageName}#g" Kubefile
-  # build
-  case $CRI_TYPE in
-  containerd)
-    IMAGE_KUBE=kubernetes
-    ;;
-  cri-o)
-    IMAGE_KUBE=kubernetes-crio
-    ;;
-  docker)
-    IMAGE_KUBE=kubernetes-docker
-    ;;
-  esac
 
   if ! [[ "$SEALOS" =~ ^[0-9\.]+[0-9]$ ]] || [[ -n "$sealosPatch" ]]; then
+    sudo cp -a "$MOUNT_TOOLS"/tools/shellcheck bin/
+    sudo cp -a "$MOUNT_TOOLS"/tools/upx bin/
+    sudo cp -a "$MOUNT_TOOLS"/tools/yq bin/
     IMAGE_PUSH_NAME=(
       "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v${KUBE%.*}-$ARCH"
     )
@@ -165,6 +148,21 @@ cd "$ROOT" && {
       )
     fi
   fi
+
+  sudo chown -R "$(whoami)" bin cri opt
+  if ! rmdir "$PATCH" 2>/dev/null; then
+    ipvsImage="${sealosPatch%%/*}/labring/lvscare:$(find "registry" -type d | grep -E "tags/.+-$ARCH$" | awk -F/ '{print $NF}')"
+    rm -f images/shim/lvscareImage
+  else
+    ipvsImage="ghcr.io/labring/lvscare:v$SEALOS"
+  fi
+  echo "$ipvsImage" >images/shim/LvscareImageList
+
+  # replace
+  sed -i "s#__lvscare__#$ipvsImage#g;s/v0.0.0/v$KUBE/g" "Kubefile"
+  pauseImage=$(sudo grep /pause: "$MOUNT_KUBE/images/shim/DefaultImageList")
+  pauseImageName=${pauseImage#*/}
+  sed -i "s#__pause__#${pauseImageName}#g" Kubefile
 
   chmod a+x bin/* opt/*
 
@@ -215,7 +213,11 @@ cd "$ROOT" && {
           kubectl taint ${node/\// } "$taint"-
         done; done
         until ! kubectl get pods --no-headers --all-namespaces | grep -vE Running; do
-          sleep 5
+          if kubectl get pods --no-headers --all-namespaces | grep -E "5m.+s"; then
+            break
+          else
+            sleep 5
+          fi
         done
         kubectl get pods -owide --all-namespaces
         kubectl get node -owide
@@ -281,7 +283,7 @@ cd "$ROOT" && {
   fi
 }
 
-sudo buildah umount "$FROM_SEALOS" "$FROM_KUBE" "$FROM_CRIO" "$FROM_CRI" || true
+sudo buildah umount "$FROM_SEALOS" "$FROM_KUBE" "$FROM_CRIO" "$FROM_CRI" "$FROM_TOOLS" || true
 sudo sealos images
 
 if [[ "$SEALOS_RUN" =~ failed ]]; then

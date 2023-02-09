@@ -148,7 +148,7 @@ check_root() {
 
 check_port_inuse() {
   if ! command_exists lsof; then
-    cp ../opt/lsof /usr/bin
+    cp -au ../opt/lsof /usr/bin
   fi
   for port in {10249..10259} {51000..51020}; do
     portOut="$(lsof -i :"${port}")"

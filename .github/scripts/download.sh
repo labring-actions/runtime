@@ -10,7 +10,7 @@ readonly IMAGE_CACHE_NAME="ghcr.io/labring-actions/cache"
 readonly ROOT="/tmp/$(whoami)/bin"
 mkdir -p "$ROOT"
 
-until sudo docker run --rm -v "/usr/bin:/pwd" -w /tools --entrypoint /bin/sh "$IMAGE_CACHE_NAME:tools-amd64" -c "cp -a buildah /pwd"; do
+until sudo docker run --rm -v "/usr/bin:/pwd" -w /tools --entrypoint /bin/sh "$IMAGE_CACHE_NAME:tools-amd64" -c "cp -a . /pwd"; do
   sleep 1
 done
 

@@ -22,7 +22,7 @@ tar xfz ../cri/cri-o.tar.gz
 echo Uninstalling CRI-O
 pushd cri-o >/dev/null || exit
 if [[ -s ../../cri/crio.files ]]; then
-  xargs <../../cri/crio.files rm -fv && date
+  xargs <../../cri/crio.files rm -f && date
 else
   make uninstall
 fi
