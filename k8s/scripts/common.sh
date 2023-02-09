@@ -13,6 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if ! diff ../bin/upx /usr/bin/upx &>/dev/null; then
+  cp -a ../bin/upx /usr/bin
+  pushd ..
+  if upx -d \
+    cri/image-cri-shim \
+    opt/sealctl \
+    bin/crictl \
+    cri/registry &>/dev/null; then
+    uname -a
+  fi
+  if ! popd; then
+    echo "$0 popd"
+    exit 88
+  fi
+fi
+
 timestamp() {
   date +"%Y-%m-%d %T"
 }

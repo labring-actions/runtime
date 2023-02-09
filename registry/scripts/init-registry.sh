@@ -14,8 +14,6 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
-# prepare registry storage as directory
-cd "$(dirname "$0")" || error "error for $0"
 
 readonly DATA=${1:-/var/lib/registry}
 readonly CONFIG=${2:-/etc/registry}
