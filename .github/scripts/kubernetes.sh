@@ -28,7 +28,7 @@ cp -a registry/* "$ROOT"
 cp -a k8s/* "$ROOT"
 
 pushd "$ROOT"
-mkdir -p bin cri opt registry images/shim
+mkdir -p bin cri opt images/shim
 
 MOUNT_CRI=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:cri-$ARCH")")
 # Check support for kube-v1.26+
@@ -56,7 +56,7 @@ MOUNT_CRIO=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:cri-v$KU
 MOUNT_TOOLS=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:tools-$ARCH")")
 sudo tar -xzf "$MOUNT_CRIO"/cri/crictl.tar.gz -C bin/
 sudo cp -au "$MOUNT_TOOLS"/tools/upx bin/
-sudo cp -au "$MOUNT_KUBE"/bin/{kubeadm,kubectl,kubelet} bin/
+#sudo cp -au "$MOUNT_KUBE"/bin/{kubeadm,kubectl,kubelet} bin/
 sudo cp -au "$MOUNT_CRI"/cri/conntrack bin/
 sudo cp -au "$MOUNT_CRI"/cri/lsof opt/
 sudo cp -au "$MOUNT_CRI"/cri/{registry,libseccomp.tar.gz} cri/
