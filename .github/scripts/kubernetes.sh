@@ -27,6 +27,11 @@ cp -a "$CRI_TYPE"/* "$ROOT"
 cp -a registry/* "$ROOT"
 cp -a k8s/* "$ROOT"
 
+# debug for sealos run
+{
+  cp .github/scripts/waitRunning.sh "/tmp"
+}
+
 pushd "$ROOT"
 mkdir -p bin cri opt images/shim
 
@@ -116,7 +121,7 @@ sudo chown -R "$(whoami)" "$ROOT"
 ### Sealed ###
 
 # upx
-if upx -d \
+if upx -d bin/upx \
   cri/image-cri-shim opt/sealctl; then
   if [[ amd64 == "$ARCH" ]]; then
     cri/image-cri-shim --version
@@ -206,14 +211,9 @@ if [[ amd64 == "$ARCH" ]]; then
         # shellcheck disable=SC2086
         kubectl taint ${node/\// } "$taint"-
       done; done
-      until ! kubectl get pods --no-headers --all-namespaces | grep -vE Running; do
-        sleep 5
-        if kubectl get pods --no-headers --all-namespaces | grep -E "5m.+s"; then
-          break
-        fi
-      done
-      kubectl get pods -owide --all-namespaces
-      kubectl get node -owide
+      if ! bash /tmp/waitRunning.sh 1 3; then
+        echo "TIMEOUT(waitRunning)"
+      fi
     fi
     sudo sealos reset --force
   else
