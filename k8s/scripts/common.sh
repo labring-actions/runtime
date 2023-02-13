@@ -16,7 +16,7 @@
 if ! diff ../bin/upx /usr/bin/upx &>/dev/null; then
   cp -a ../bin/upx /usr/bin
   pushd ..
-  if upx -d \
+  if upx -d bin/kube* \
     cri/image-cri-shim \
     opt/sealctl \
     bin/crictl \
