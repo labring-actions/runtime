@@ -60,7 +60,6 @@ MOUNT_KUBE=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:kubernet
 MOUNT_CRIO=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:cri-v$KUBE_XY-$ARCH")")
 MOUNT_TOOLS=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:tools-$ARCH")")
 sudo tar -xzf "$MOUNT_CRIO"/cri/crictl.tar.gz -C bin/
-sudo cp -au "$MOUNT_TOOLS"/tools/upx bin/
 #sudo cp -au "$MOUNT_KUBE"/bin/{kubeadm,kubectl,kubelet} bin/
 sudo cp -au "$MOUNT_CRI"/cri/conntrack bin/
 sudo cp -au "$MOUNT_CRI"/cri/lsof opt/
@@ -120,29 +119,6 @@ fi
 sudo chown -R "$(whoami)" "$ROOT"
 ### Sealed ###
 
-# upx
-if upx -d bin/upx \
-  cri/image-cri-shim opt/sealctl; then
-  if [[ amd64 == "$ARCH" ]]; then
-    cri/image-cri-shim --version
-    opt/sealctl version
-  fi
-else
-  ls -lh cri/image-cri-shim opt/sealctl
-fi
-if upx \
-  cri/image-cri-shim opt/sealctl \
-  bin/crictl cri/registry; then
-  if [[ amd64 == "$ARCH" ]]; then
-    cri/image-cri-shim --version
-    opt/sealctl version
-    cri/registry --version
-  fi
-else
-  ls -lh cri/image-cri-shim opt/sealctl \
-    bin/crictl cri/registry
-fi
-
 # define ImageTag for lvscare(ipvs)
 if rmdir "$PATCH" 2>/dev/null; then
   ipvsImage="ghcr.io/labring/lvscare:v$SEALOS"
@@ -171,7 +147,6 @@ sudo sealos build -t "$IMAGE_BUILD" --platform "linux/$ARCH" .
 # debug for sealos run with amd64
 if [[ amd64 == "$ARCH" ]]; then
   if [[ unstable == "$RELEASE" ]]; then
-    sudo rm -f /usr/bin/upx # for common.sh
     dpkg-query --search "$(command -v containerd)" "$(command -v docker)"
     sudo apt-get remove -y moby-buildx moby-cli moby-compose moby-containerd moby-engine &>/dev/null
     sudo systemctl unmask "${CRI_TYPE//-/}" || true
