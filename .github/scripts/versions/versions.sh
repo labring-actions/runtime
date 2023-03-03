@@ -73,7 +73,7 @@ for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
     {
       cut -dv -f 2 ".versions/$K8S_MD" | head -n 1
       cut -dv -f 2 ".versions/$K8S_MD" | tail -n 1
-    } | awk '{printf "{\"'version'\":\"%s\"},",$1}' >>.versions/versions.txt
+    } | sort | uniq | awk '{printf "{\"'version'\":\"%s\"},",$1}' >>.versions/versions.txt
   else
     cut -dv -f 2 ".versions/$K8S_MD" |
       awk '{printf "{\"'version'\":\"%s\"},",$1}' >>.versions/versions.txt
