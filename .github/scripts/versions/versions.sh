@@ -7,6 +7,7 @@ readonly CRI_TYPE=${criType?}
 readonly IMAGE_HUB_REGISTRY=${registry:-}
 readonly IMAGE_HUB_REPO=${repo?}
 readonly SEALOS=${sealoslatest?}
+readonly SEALOS_XYZ="${SEALOS%%-*}"
 
 case $CRI_TYPE in
 containerd)
@@ -68,9 +69,11 @@ for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
     cat ".versions/$K8S_MD.cached"
   )
   [[ -s ".versions/$K8S_MD" ]] || cp ".versions/$K8S_MD.latest" ".versions/$K8S_MD"
-  if ! [[ "$SEALOS" =~ ^[0-9\.]+[0-9]$ ]] || [[ -n "$sealosPatch" ]]; then
-    cut -dv -f 2 ".versions/$K8S_MD" | head -n 1 |
-      awk '{printf "{\"'version'\":\"%s\"},",$1}' >>.versions/versions.txt
+  if ! [[ "$SEALOS" =~ ^[0-9\.]+[0-9]$ ]] || [[ -n "$sealosPatch" ]] || [[ "${SEALOS_XYZ//./}" -ge 416 ]]; then
+    {
+      cut -dv -f 2 ".versions/$K8S_MD" | head -n 1
+      cut -dv -f 2 ".versions/$K8S_MD" | tail -n 1
+    } | awk '{printf "{\"'version'\":\"%s\"},",$1}' >>.versions/versions.txt
   else
     cut -dv -f 2 ".versions/$K8S_MD" |
       awk '{printf "{\"'version'\":\"%s\"},",$1}' >>.versions/versions.txt
