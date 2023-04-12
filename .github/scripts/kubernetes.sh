@@ -221,6 +221,10 @@ echo "SEALOS_STATUS => $SEALOS_RUN"
       # check images
       for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
         if [[ "$allBuild" != true ]]; then
+          if [[ "${KUBE_XY//./}" -eq 127 ]]; then
+            echo "$IMAGE_NAME" >>"/tmp/$IMAGE_HUB_REGISTRY.v$KUBE-$ARCH.images"
+            continue
+          fi
           case $IMAGE_HUB_REGISTRY in
           docker.io)
             if until curl -sL "https://hub.docker.com/v2/repositories/$IMAGE_HUB_REPO/$IMAGE_KUBE/tags/${IMAGE_NAME##*:}"; do sleep 3; done |
