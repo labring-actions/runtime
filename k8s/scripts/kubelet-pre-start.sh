@@ -18,7 +18,7 @@ modprobe -- ip_vs
 modprobe -- ip_vs_rr
 modprobe -- ip_vs_wrr
 modprobe -- ip_vs_sh
-# 1.20 need ope br_netfilter
+# 1.20 need open br_netfilter
 modprobe -- br_netfilter
 modprobe -- bridge
 
@@ -39,14 +39,8 @@ else
   modprobe -- nf_conntrack_ipv4
 fi
 
-cat <<EOF >/etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.conf.all.rp_filter=0
-EOF
 sysctl --system
-sysctl -w net.ipv4.ip_forward=1
 # systemctl stop firewalld && systemctl disable firewalld
-swapoff -a
+swapoff -a || true
 disable_selinux
 exit 0
