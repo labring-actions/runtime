@@ -1,6 +1,6 @@
 FROM scratch
 MAINTAINER sealos
-LABEL init="init-cri.sh && bash init.sh" \
+LABEL init="init-cri.sh \$registryDomain \$registryPort && bash init.sh" \
       clean="clean.sh && bash clean-cri.sh \$criData" \
       check="check.sh \$registryData" \
       init-registry="init-registry.sh \$registryData \$registryConfig" \
