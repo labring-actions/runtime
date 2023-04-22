@@ -122,4 +122,6 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            detail log please view [autobuild-k8s-cri-o-part4](https://github.com/labring-actions/runtime/actions/workflows/autobuild-k8s-cri-o-part4.yml)
+            🤖 says: Hooray! The action autobuild-k8s-cri-o-part4 has been completed successfully. 🎉
+
+            See: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
