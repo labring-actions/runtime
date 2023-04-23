@@ -12,8 +12,8 @@ on:
 env:
   part: 4
   allBuild: false
-  registry: docker.io
-  repo: ${{ secrets.D_REGISTRY_NAME }}
+  registry: ${{ vars.D_REGISTRY_NAME }}
+  repo: ${{ vars.D_REGISTRY_REPOSITORY }}
   sealosPatch: ${{ github.event.inputs.sealosPatch }}
   criType: cri-o
 jobs:
@@ -77,7 +77,7 @@ jobs:
 
       - name: Auto build image
         env:
-          username: ${{ secrets.D_REGISTRY_NAME }}
+          username: ${{ vars.D_REGISTRY_REPOSITORY }}
           password: ${{ secrets.D_REGISTRY_TOKEN }}
           arch: ${{ matrix.arch }}
           kubeVersion: ${{ matrix.version }}
@@ -103,7 +103,7 @@ jobs:
         run: .github/scripts/download.sh
       - name: Manifest Image
         env:
-          username: ${{ secrets.D_REGISTRY_NAME }}
+          username: ${{ vars.D_REGISTRY_REPOSITORY }}
           password: ${{ secrets.D_REGISTRY_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh
