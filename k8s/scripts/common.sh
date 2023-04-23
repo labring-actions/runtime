@@ -150,7 +150,7 @@ check_port_inuse() {
   if ! command_exists lsof; then
     cp -au ../opt/lsof /usr/bin
   fi
-  for port in {10249..10259} {51000..51020}; do
+  for port in {10249..10259}; do
     portOut="$(lsof -i :"${port}")"
     if [ -n "$portOut" ]; then
       error "Port: $port occupied. Please turn off port service."
