@@ -19,8 +19,6 @@ if ! bash init-shim.sh; then
   error "====init image-cri-shim failed!===="
 fi
 
-#need after cri-shim
-crictl pull ${registryDomain}:${registryPort}/${sandboxImage}
 
 if ! bash init-kube.sh; then
   error "====init kubelet failed!===="

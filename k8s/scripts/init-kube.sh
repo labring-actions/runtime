@@ -27,6 +27,8 @@ source common.sh
 disable_firewalld
 
 cp -a ../bin/* /usr/bin
+#need after cri-shim
+crictl pull ${registryDomain}:${registryPort}/${sandboxImage}
 mkdir -p /etc/systemd/system
 cp ../etc/kubelet.service /etc/systemd/system/
 [ -d /etc/systemd/system/kubelet.service.d ] || mkdir /etc/systemd/system/kubelet.service.d
