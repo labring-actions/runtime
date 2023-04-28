@@ -19,5 +19,6 @@ ENV criData=/var/lib/docker \
     registryUsername=admin \
     registryPassword=passw0rd \
     sandboxImage=__pause__ \
-    defaultVIP=10.103.97.2
+    defaultVIP=10.103.97.2 \
+    SEALOS_SYS_CRI_ENDPOINT=/var/run/cri-dockerd.sock
 COPY . .
