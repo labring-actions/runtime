@@ -57,10 +57,12 @@ docker)
 esac
 
 if ! [[ "$SEALOS" =~ ^[0-9\.]+[0-9]$ ]] || [[ -n "$sealosPatch" ]]; then
+  IMAGE_TAGS="v${KUBE%.*}-amd64,v${KUBE%.*}-arm64"
   IMAGE_PUSH_NAME=(
     "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v${KUBE%.*}"
   )
 else
+  IMAGE_TAGS="v$KUBE-$SEALOS-amd64,v$KUBE-$SEALOS-arm64"
   if [[ "$SEALOS" == "$(
     until curl -sL "https://api.github.com/repos/labring/sealos/releases/latest"; do sleep 3; done | grep tarball_url | awk -F\" '{print $(NF-1)}' | awk -F/ '{print $NF}' | cut -dv -f2
   )" ]]; then
@@ -75,21 +77,20 @@ else
   fi
 fi
 
-until [[ $(sudo buildah images | grep -c "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE") -eq ${#IMAGE_PUSH_NAME[@]} ]]; do
-  for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
-    sudo buildah manifest create "$IMAGE_NAME"
-    sudo buildah manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-amd64"
-    sudo buildah manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-arm64"
-    if [[ $(sudo buildah inspect "$IMAGE_NAME" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -ne 2 ]]; then
-      sudo buildah manifest inspect "$IMAGE_NAME" | yq -CP
-      echo "ERROR::TARGETARCH for sealos build"
-      exit $ERR_CODE
+sudo buildah login -u "$IMAGE_HUB_USERNAME" -p "$IMAGE_HUB_PASSWORD" "$IMAGE_HUB_REGISTRY"
+for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
+  if echo "$IMAGE_TAGS" | sed "s~,~\n~g" | while read -r tag; do
+    echo "${IMAGE_NAME%:*}:$tag"
+  done | xargs sudo buildah manifest create --all "mf:$KUBE-$SEALOS"; then
+    if [[ $(sudo buildah inspect "mf:$KUBE-$SEALOS" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -eq 2 ]]; then
+      sudo buildah manifest push --rm --all "mf:$KUBE-$SEALOS" "docker://$IMAGE_NAME" && echo "$IMAGE_NAME push success"
     else
-      sudo buildah login -u "$IMAGE_HUB_USERNAME" -p "$IMAGE_HUB_PASSWORD" "$IMAGE_HUB_REGISTRY" &&
-        sudo buildah manifest push --all "$IMAGE_NAME" docker://"$IMAGE_NAME" && echo "$IMAGE_NAME push success"
+      sudo buildah manifest inspect "mf:$KUBE-$SEALOS" | yq -CP
+      echo "ERROR::TARGETARCH for sealos build"
+      sudo buildah images
+      exit $ERR_CODE
     fi
-  done
-  sleep 3
+  fi
 done
 
 sudo buildah images
