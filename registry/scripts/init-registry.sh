@@ -26,6 +26,7 @@ cp -au ../cri/registry /usr/bin/
 cp -a ../etc/registry_config.yml "$CONFIG"
 cp -a ../etc/registry_htpasswd "$CONFIG"
 
+disable_selinux
 check_service start registry
 check_status registry
 
