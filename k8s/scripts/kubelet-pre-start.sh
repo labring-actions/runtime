@@ -22,21 +22,17 @@ modprobe -- ip_vs_sh
 modprobe -- br_netfilter
 modprobe -- bridge
 
-version_ge() {
-  test "$(echo "$@" | tr ' ' '\n' | sort -rV | head -n 1)" == "$1"
-}
-disable_selinux() {
-  if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then
-    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-    setenforce 0
-  fi
-}
+source common.sh
 
 kernel_version=$(uname -r | cut -d- -f1)
 if version_ge "${kernel_version}" 4.19; then
   modprobe -- nf_conntrack
 else
   modprobe -- nf_conntrack_ipv4
+fi
+
+if [[ "$(get_distribution)" = "kylin" ]]; then
+  mv /etc/sysctl.conf /etc/sysctl.conf.bak
 fi
 
 sysctl --system
