@@ -31,10 +31,7 @@ else
   modprobe -- nf_conntrack_ipv4
 fi
 
-if [[ "$(get_distribution)" = "kylin" ]]; then
-  mv /etc/sysctl.conf /etc/sysctl.conf.bak
-fi
-
+backup_sysctl_conf
 sysctl --system
 # systemctl stop firewalld && systemctl disable firewalld
 swapoff -a || true
