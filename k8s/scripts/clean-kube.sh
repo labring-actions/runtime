@@ -24,7 +24,7 @@ rm -f /usr/bin/kubeadm
 rm -f /usr/bin/kubectl
 rm -f /usr/bin/kubelet
 
-rm -f /etc/sysctl.d/k8s.conf
+sed -i '/ # sealos/d' /etc/sysctl.conf
 rm -f /etc/systemd/system/kubelet.service
 rm -rf /etc/systemd/system/kubelet.service.d
 rm -rf /var/lib/kubelet/

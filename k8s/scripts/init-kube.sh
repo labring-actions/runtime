@@ -22,13 +22,13 @@ cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
 
 # Annotate system configuration
-while read -r str; do
+cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
   k=${str%=*}
   v=${str#*=}
   if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
     echo "$k=$v # sealos"
   fi
-done <../etc/sysctl.d/*.conf >>/etc/sysctl.conf
+done >>/etc/sysctl.conf
 
 source common.sh
 disable_firewalld
