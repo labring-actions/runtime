@@ -20,8 +20,15 @@ grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 
 cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
-cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
-bash /usr/bin/kubelet-pre-start.sh
+
+# Annotate system configuration
+while read -r str; do
+  k=${str%=*}
+  v=${str#*=}
+  if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
+    echo "$k=$v # sealos"
+  fi
+done <../etc/sysctl.d/*.conf >>/etc/sysctl.conf
 
 source common.sh
 disable_firewalld
