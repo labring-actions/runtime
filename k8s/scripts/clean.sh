@@ -17,6 +17,5 @@ source common.sh
 
 bash clean-kube.sh
 bash clean-shim.sh
-restore_sysctl_conf
 
 logger "clean rootfs success"
