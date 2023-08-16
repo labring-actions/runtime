@@ -24,6 +24,10 @@ grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
 
+
+source common.sh
+disable_firewalld
+
 # Annotate system configuration
 if [[ "$(get_distribution)" = "kylin" ]]; then
   cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
