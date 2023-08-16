@@ -20,7 +20,6 @@ grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 
 cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
-cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
 
 # Annotate system configuration
 while read -r str; do
@@ -30,8 +29,6 @@ while read -r str; do
     echo "$k=$v # sealos"
   fi
 done <../etc/sysctl.d/*.conf >>/etc/sysctl.conf
-
-bash /usr/bin/kubelet-pre-start.sh
 
 source common.sh
 disable_firewalld
