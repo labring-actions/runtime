@@ -24,7 +24,11 @@ rm -f /usr/bin/kubeadm
 rm -f /usr/bin/kubectl
 rm -f /usr/bin/kubelet
 
-sed -i '/ # sealos/d' /etc/sysctl.conf
+if [[ "$(get_distribution)" = "kylin" ]]; then
+  sed -i '/ # sealos/d' /etc/sysctl.conf
+else
+  rm -f /etc/sysctl.d/sealos-k8s.conf
+fi
 rm -f /etc/systemd/system/kubelet.service
 rm -rf /etc/systemd/system/kubelet.service.d
 rm -rf /var/lib/kubelet/

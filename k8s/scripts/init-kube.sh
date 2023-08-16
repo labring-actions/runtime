@@ -22,13 +22,18 @@ cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
 
 # Annotate system configuration
-cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
-  k=${str%=*}
-  v=${str#*=}
-  if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
-    echo "$k=$v # sealos"
-  fi
-done >>/etc/sysctl.conf
+if [[ "$(get_distribution)" = "kylin" ]]; then
+  cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
+    k=${str%=*}
+    v=${str#*=}
+    if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
+      echo "$k=$v # sealos"
+    fi
+  done >>/etc/sysctl.conf
+else
+  cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
+  bash /usr/bin/kubelet-pre-start.sh
+fi
 
 source common.sh
 disable_firewalld
