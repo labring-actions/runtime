@@ -23,11 +23,13 @@ cp -a ../scripts/kubelet-post-stop.sh /usr/bin
 cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
 
 # Annotate system configuration
-if [[ -f "/etc/sysctl.conf" ]]; then
-  for configName in $(awk -F'=' '!/^($|#)/{print $1}' /etc/sysctl.d/sealos-k8s.conf | awk '$1=$1'); do 
-    sed -i "/^${configName}=/s/^/# /" /etc/sysctl.conf
-  done
-fi
+while read -r str; do
+  k=${str%=*}
+  v=${str#*=}
+  if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
+    echo "$k=$v # sealos"
+  fi
+done <../etc/sysctl.d/*.conf >>/etc/sysctl.conf
 
 bash /usr/bin/kubelet-pre-start.sh
 
