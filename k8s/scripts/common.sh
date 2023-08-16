@@ -157,19 +157,3 @@ check_port_inuse() {
     fi
   done
 }
-
-backup_sysctl_conf() {
-  if [[ "$(get_distribution)" == "kylin" ]]; then
-    if [[ -f "/etc/sysctl.conf" ]]; then 
-      mv /etc/sysctl.conf /etc/sysctl.conf.bak
-    fi
-  fi
-}
-
-restore_sysctl_conf() {
-  if [[ "$(get_distribution)" = "kylin" ]]; then
-    if [[ -f "/etc/sysctl.conf.bak" && ! -f "/etc/sysctl.conf" ]]; then
-      mv /etc/sysctl.conf.bak /etc/sysctl.conf 
-    fi
-  fi
-}

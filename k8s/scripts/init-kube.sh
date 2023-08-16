@@ -21,6 +21,14 @@ grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
 cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
+
+# Annotate system configuration
+if [[ -f "/etc/sysctl.conf" ]]; then
+  for configName in $(awk -F'=' '!/^($|#)/{print $1}' /etc/sysctl.d/sealos-k8s.conf | awk '$1=$1'); do 
+    sed -i "/^${configName}=/s/^/# /" /etc/sysctl.conf
+  done
+fi
+
 bash /usr/bin/kubelet-pre-start.sh
 
 source common.sh
