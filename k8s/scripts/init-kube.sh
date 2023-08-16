@@ -14,6 +14,9 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 
+source common.sh
+disable_firewalld
+
 # localhost for hosts
 grep 127.0.0.1 <(grep localhost /etc/hosts) || echo "127.0.0.1 localhost" >>/etc/hosts
 grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
@@ -34,9 +37,6 @@ else
   cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
   bash /usr/bin/kubelet-pre-start.sh
 fi
-
-source common.sh
-disable_firewalld
 
 cp -a ../bin/* /usr/bin
 #need after cri-shim
