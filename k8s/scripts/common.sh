@@ -150,7 +150,8 @@ check_port_inuse() {
   if ! command_exists lsof; then
     cp -au ../opt/lsof /usr/bin
   fi
-  for port in {10249..10259}; do
+  logger "Check port kubelet port 10249..10259, reserved port 5050..5059 inuse. Please wait..."
+  for port in {10249..10259} {5050..5059}; do
     portOut="$(lsof -i :"${port}")"
     if [ -n "$portOut" ]; then
       error "Port: $port occupied. Please turn off port service."
