@@ -26,18 +26,13 @@ source common.sh
 disable_firewalld
 
 # Annotate system configuration
-if [[ "$(get_distribution)" = "kylin" ]]; then
-  cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
-    k=${str%=*}
-    v=${str#*=}
-    if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
-      echo "$k=$v # sealos"
-    fi
-  done >>/etc/sysctl.conf
-else
-  cp -rf ../etc/sysctl.d/* /etc/sysctl.d/
-  bash /usr/bin/kubelet-pre-start.sh
-fi
+cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
+  k=${str%=*}
+  v=${str#*=}
+  if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
+    echo "$k=$v # sealos"
+  fi
+done >>/etc/sysctl.conf
 
 cp -a ../bin/* /usr/bin
 #need after cri-shim
