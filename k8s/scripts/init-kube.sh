@@ -21,7 +21,6 @@ grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 cp -a ../scripts/kubelet-pre-start.sh /usr/bin
 cp -a ../scripts/kubelet-post-stop.sh /usr/bin
 
-
 source common.sh
 disable_firewalld
 
@@ -33,6 +32,16 @@ cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
     echo "$k=$v # sealos"
   fi
 done >>/etc/sysctl.conf
+kubelet-pre-start.sh
+sealos_b='### sealos begin ###'
+sealos_e='### sealos end ###'
+if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; then
+  {
+    echo "$sealos_b"
+    cat ../etc/limits.d/*.conf | grep -v ^# | grep -v ^$ | awk '{print $1,$2,$3,$4}'
+    echo "$sealos_e"
+  } >>/etc/security/limits.conf
+fi
 
 cp -a ../bin/* /usr/bin
 #need after cri-shim

@@ -25,6 +25,13 @@ rm -f /usr/bin/kubectl
 rm -f /usr/bin/kubelet
 
 sed -i '/ # sealos/d' /etc/sysctl.conf
+sealos_b='### sealos begin ###'
+sealos_e='### sealos end ###'
+if grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; then
+  slb=$(grep -nE "($sealos_b|$sealos_e)" /etc/security/limits.conf | head -n 1 | awk -F: '{print $1}')
+  sle=$(grep -nE "($sealos_b|$sealos_e)" /etc/security/limits.conf | tail -n 1 | awk -F: '{print $1}')
+  sed -i "${slb},${sle}d" /etc/security/limits.conf
+fi
 rm -f /etc/systemd/system/kubelet.service
 rm -rf /etc/systemd/system/kubelet.service.d
 rm -rf /var/lib/kubelet/
