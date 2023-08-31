@@ -14,15 +14,12 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
-systemctl stop kubelet
+systemctl stop k3s
 systemctl daemon-reload
 
 rm -f /usr/bin/conntrack
-rm -f /usr/bin/kubelet-pre-start.sh
-rm -f /usr/bin/kubelet-post-stop.sh
-rm -f /usr/bin/kubeadm
-rm -f /usr/bin/kubectl
-rm -f /usr/bin/kubelet
+rm -f /usr/bin/k3s-pre-start.sh
+rm -f /usr/bin/k3s-post-stop.sh
 
 sed -i '/ # sealos/d' /etc/sysctl.conf
 sealos_b='### sealos begin ###'
@@ -32,7 +29,7 @@ if grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; th
   sle=$(grep -nE "($sealos_b|$sealos_e)" /etc/security/limits.conf | tail -n 1 | awk -F: '{print $1}')
   sed -i "${slb},${sle}d" /etc/security/limits.conf
 fi
-rm -f /etc/systemd/system/kubelet.service
-rm -rf /etc/systemd/system/kubelet.service.d
+rm -f /etc/systemd/system/k3s.service
+rm -rf /etc/systemd/system/k3s.service.d
 rm -rf /var/lib/kubelet/
 logger "clean kubelet success"

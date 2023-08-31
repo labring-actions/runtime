@@ -18,8 +18,8 @@ cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 grep 127.0.0.1 <(grep localhost /etc/hosts) || echo "127.0.0.1 localhost" >>/etc/hosts
 grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 
-cp -a ../scripts/kubelet-pre-start.sh /usr/bin
-cp -a ../scripts/kubelet-post-stop.sh /usr/bin
+cp -a ../scripts/k3s-pre-start.sh /usr/bin
+cp -a ../scripts/k3s-post-stop.sh /usr/bin
 
 source common.sh
 disable_firewalld
@@ -49,8 +49,6 @@ logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
 crictl pull ${registryDomain}:${registryPort}/${sandboxImage}
 mkdir -p /etc/systemd/system
 cp ../etc/kubelet.service /etc/systemd/system/
-[ -d /etc/systemd/system/kubelet.service.d ] || mkdir /etc/systemd/system/kubelet.service.d
-cp ../etc/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/
 [ -d /var/lib/kubelet ] || mkdir /var/lib/kubelet
 systemctl enable kubelet
 logger "init kubelet success"

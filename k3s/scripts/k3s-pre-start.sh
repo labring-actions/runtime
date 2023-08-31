@@ -21,6 +21,7 @@ modprobe -- ip_vs_sh
 # 1.20 need open br_netfilter
 modprobe -- br_netfilter
 modprobe -- bridge
+modprobe -- overlay
 
 version_ge() {
   test "$(echo "$@" | tr ' ' '\n' | sort -rV | head -n 1)" == "$1"

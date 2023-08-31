@@ -147,12 +147,12 @@ check_root() {
 }
 
 check_port_inuse() {
-  if ! command_exists lsof; then
-    cp -au ../opt/lsof /usr/bin
-  fi
+  for service in /etc/systemd/system/k3s*.service; do
+      [ -s $service ] && systemctl stop $(basename $service)
+  done
   logger "Check port kubelet port 10249..10259, reserved port 5050..5054 inuse. Please wait..."
-  for port in {10249..10259} {5050..5054}; do
-    portOut="$(lsof -i :"${port}")"
+  for port in {5050..5054}; do
+    portOut="$(../opt/lsof -i :"${port}")"
     if [ -n "$portOut" ]; then
       error "Port: $port occupied. Please turn off port service."
     fi
