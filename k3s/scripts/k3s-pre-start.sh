@@ -14,34 +14,27 @@
 # limitations under the License.
 
 # Open ipvs
-modprobe -- ip_vs
-modprobe -- ip_vs_rr
-modprobe -- ip_vs_wrr
-modprobe -- ip_vs_sh
+cat <<EOF | xargs modprobe
+ip_vs
+ip_vs_rr
+ip_vs_wrr
+ip_vs_sh
+EOF
 # 1.20 need open br_netfilter
-modprobe -- br_netfilter
-modprobe -- bridge
-modprobe -- overlay
-
-version_ge() {
-  test "$(echo "$@" | tr ' ' '\n' | sort -rV | head -n 1)" == "$1"
-}
-disable_selinux() {
-  if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then
-    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-    setenforce 0
-  fi
-}
-
-kernel_version=$(uname -r | cut -d- -f1)
-if version_ge "${kernel_version}" 4.19; then
-  modprobe -- nf_conntrack
-else
+cat <<EOF | xargs modprobe
+br_netfilter
+bridge
+overlay
+EOF
+# Kernel 4.19 has rebranded nf_conntrack_ipv4 to nf_conntrack
+if ! modprobe -- nf_conntrack >/dev/null 2>&1; then
   modprobe -- nf_conntrack_ipv4
 fi
 
 sysctl --system
-# systemctl stop firewalld && systemctl disable firewalld
-swapoff -a || true
-disable_selinux
-exit 0
+swapoff --all || true
+
+if grep SELINUX=enforcing /etc/selinux/config >/dev/null 2>&1; then
+  sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+  setenforce 0
+fi
