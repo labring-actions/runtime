@@ -32,7 +32,7 @@ cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
     echo "$k=$v # sealos"
   fi
 done >>/etc/sysctl.conf
-kubelet-pre-start.sh
+bash /usr/bin/kubelet-pre-start.sh
 sealos_b='### sealos begin ###'
 sealos_e='### sealos end ###'
 if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; then
