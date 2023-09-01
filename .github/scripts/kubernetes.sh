@@ -132,9 +132,6 @@ echo "$ipvsImage" >images/shim/LvscareImageList
 pauseImage=$(sudo grep /pause: "$MOUNT_KUBE/images/shim/DefaultImageList")
 # shellcheck disable=SC2002
 cat Kubefile |
-  sed "s#__pause__#${pauseImage#*/}#g" |
-  sed "s#__lvscare__#$ipvsImage#g" |
-  sed "s/v0.0.0/v$KUBE/g" |
   sed -E "s#^FROM .+#FROM $IMAGE_CACHE_NAME:kubernetes-v$KUBE-$ARCH#" >"Kubefile.$(uname)"
 mv -fv "Kubefile.$(uname)" Kubefile
 
@@ -142,7 +139,16 @@ mv -fv "Kubefile.$(uname)" Kubefile
 IMAGE_BUILD="$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:build-$(date +%s)"
 find . -type f -exec file {} \; | grep -E "(executable,|/ld-)" | awk -F: '{print $1}' | grep -vE "\.so" | while IFS='' read -r elf; do echo "${elf}"; done | xargs chmod a+x
 tree -L 5
-sudo sealos build -t "$IMAGE_BUILD" --platform "linux/$ARCH" .
+# shellcheck disable=SC2046
+sudo sealos build $(
+  cat <<EOF | while read -r kv; do echo --label=$kv; done | xargs
+sealos.io.type=rootfs
+sealos.io.version=v1beta1
+version=v$KUBE
+image=$ipvsImage
+sandboxImage=${pauseImage#*/}
+EOF
+) -t "$IMAGE_BUILD" --platform "linux/$ARCH" .
 
 # debug for sealos run with amd64
 if [[ amd64 == "$ARCH" ]]; then
