@@ -146,6 +146,9 @@ sealos.io.type=rootfs
 sealos.io.version=v1beta1
 version=v$KUBE
 image=$ipvsImage
+EOF
+) $(
+  cat <<EOF | while read -r kv; do echo --env=$kv; done | xargs
 sandboxImage=${pauseImage#*/}
 EOF
 ) -t "$IMAGE_BUILD" --platform "linux/$ARCH" .
