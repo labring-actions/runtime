@@ -28,9 +28,7 @@ disable_firewalld
 cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
   k=${str%=*}
   v=${str#*=}
-  if [ "$k" != "$v" ] && ! grep "$k" /etc/sysctl.conf >/dev/null 2>&1; then
-    echo "$k=$v # sealos"
-  fi
+  echo "$k=$v # sealos"
 done >>/etc/sysctl.conf
 bash /usr/bin/kubelet-pre-start.sh
 sealos_b='### sealos begin ###'
