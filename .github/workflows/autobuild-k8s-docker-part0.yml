@@ -5,7 +5,7 @@ on:
       sealosPatch:
         description: 'sealos patch image for development.'
         required: true
-        default: ghcr.io/labring/sealos-patch:dev
+        default: ghcr.io/labring/sealos-patch:latest
   issue_comment:
     types:
       - created
