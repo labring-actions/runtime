@@ -150,7 +150,7 @@ check_port_inuse() {
   for service in /etc/systemd/system/k3s*.service; do
       [ -s $service ] && systemctl stop $(basename $service)
   done
-  logger "Check port kubelet port 10249..10259, reserved port 5050..5054 inuse. Please wait..."
+  logger "Check port reserved port 5050..5054 inuse. Please wait..."
   for port in {5050..5054}; do
     portOut="$(../opt/lsof -i :"${port}")"
     if [ -n "$portOut" ]; then
