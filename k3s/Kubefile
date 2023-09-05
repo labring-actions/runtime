@@ -1,0 +1,20 @@
+FROM scratch
+MAINTAINER sealos
+LABEL init="init.sh" \
+      init-cri="init-cri.sh" \
+      clean="clean.sh" \
+      clean-cri="clean-cri.sh \$criData \$criDockerdData" \
+      check="check.sh \$registryData" \
+      init-registry="init-registry.sh \$registryData \$registryConfig" \
+      clean-registry="clean-registry.sh \$registryData \$registryConfig" \
+      vip="\$defaultVIP"
+ENV registryData=/var/lib/registry \
+    registryConfig=/etc/registry \
+    registryDomain=sealos.hub \
+    registryPort=5000 \
+    registryUsername=admin \
+    registryPassword=passw0rd \
+    defaultVIP=10.103.97.2 \
+    SEALOS_SYS_CRI_ENDPOINT=/var/run/cri-dockerd.sock \
+    SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock
+COPY . .
