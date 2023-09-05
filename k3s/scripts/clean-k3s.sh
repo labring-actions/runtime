@@ -15,9 +15,9 @@
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 systemctl stop k3s
+systemctl disable k3s
 systemctl daemon-reload
 
-rm -f /usr/bin/conntrack
 rm -f /usr/bin/k3s-pre-start.sh
 rm -f /usr/bin/k3s-post-stop.sh
 
@@ -29,7 +29,16 @@ if grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; th
   sle=$(grep -nE "($sealos_b|$sealos_e)" /etc/security/limits.conf | tail -n 1 | awk -F: '{print $1}')
   sed -i "${slb},${sle}d" /etc/security/limits.conf
 fi
+
+rm -rf /usr/bin/{kubectl,crictl,ctr,k3s}
 rm -f /etc/systemd/system/k3s.service
 rm -rf /etc/systemd/system/k3s.service.d
-rm -rf /var/lib/kubelet/
+rm -rf /etc/rancher/k3s
+rm -rf /run/k3s
+rm -rf /run/flannel
+rm -rf /var/lib/rancher/k3s
+rm -rf /var/lib/kubelet
+
+bash killall.sh
+
 logger "clean kubelet success"

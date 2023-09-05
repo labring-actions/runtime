@@ -68,19 +68,6 @@ check_status() {
   done
 }
 
-ubuntu_dns() {
-  os="$(. /etc/os-release && echo "$ID")"
-  if echo "$os" | grep "ubuntu" >/dev/null 2>&1; then
-    if systemctl status systemd-resolved.service >/dev/null 2>&1; then
-      systemctl stop systemd-resolved.service
-      systemctl disable systemd-resolved.service
-      rm /etc/resolv.conf
-      cp /run/systemd/resolve/resolv.conf /etc/resolv.conf
-    fi
-    logger "steup operation_ubuntu finished"
-  fi
-}
-
 version_ge() {
   test "$(echo "$@" | tr ' ' '\n' | sort -rV | head -n 1)" == "$1"
 }
@@ -149,6 +136,9 @@ check_root() {
 check_port_inuse() {
   for service in /etc/systemd/system/k3s*.service; do
       [ -s $service ] && systemctl stop $(basename $service)
+  done
+  for service in /etc/init.d/k3s*; do
+      [ -x $service ] && $service stop
   done
   logger "Check port reserved port 5050..5054 inuse. Please wait..."
   for port in {5050..5054}; do

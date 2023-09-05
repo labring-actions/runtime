@@ -42,6 +42,22 @@ if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; 
 fi
 
 cp -a ../bin/* /usr/bin
+for cmd in kubectl crictl ctr; do
+    if [ ! -e /usr/bin/${cmd} ] ; then
+        which_cmd=$(command -v ${cmd} 2>/dev/null || true)
+        if [ -z "${which_cmd}" ]; then
+            info "Creating /usr/bin/${cmd} symlink to k3s"
+            ln -sf /usr/bin/k3s /usr/bin/${cmd}
+        else
+            info "Skipping /usr/bin/${cmd} symlink to k3s, command exists in PATH at ${which_cmd}"
+        fi
+    else
+        info "Skipping /usr/bin/${cmd} symlink to k3s, already exists"
+    fi
+done
+for bin in /var/lib/rancher/k3s/data/**/bin/; do
+    [ -d $bin ] && export PATH=$PATH:$bin:$bin/aux
+done
 #need after cri-shim
 logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
 crictl pull ${registryDomain}:${registryPort}/${sandboxImage}

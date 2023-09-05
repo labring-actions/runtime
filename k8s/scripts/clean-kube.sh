@@ -15,6 +15,7 @@
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 systemctl stop kubelet
+systemctl disable kubelet
 systemctl daemon-reload
 
 rm -f /usr/bin/conntrack
