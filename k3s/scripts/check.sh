@@ -15,9 +15,6 @@
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 storage=${1:-/var/lib/registry}
-if command_exists containerd && ! command_exists docker; then
-  error "containerd already exist, uninstall containerd and retry"
-fi
 check_port_inuse
 check_file_exits $storage
 logger "check root,port,cri success"
