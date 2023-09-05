@@ -14,5 +14,6 @@ ENV criData=/var/lib/crio \
     registryUsername=admin \
     registryPassword=passw0rd \
     defaultVIP=10.103.97.2 \
-    SEALOS_SYS_CRI_ENDPOINT=/var/run/crio/crio.sock
+    SEALOS_SYS_CRI_ENDPOINT=/var/run/crio/crio.sock \
+    SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock
 COPY . .

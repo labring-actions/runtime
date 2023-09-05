@@ -15,5 +15,6 @@ ENV criData=/var/lib/containerd \
     registryPassword=passw0rd \
     disableApparmor=false \
     defaultVIP=10.103.97.2 \
-    SEALOS_SYS_CRI_ENDPOINT=/var/run/containerd/containerd.sock
+    SEALOS_SYS_CRI_ENDPOINT=/var/run/containerd/containerd.sock \
+    SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock
 COPY . .

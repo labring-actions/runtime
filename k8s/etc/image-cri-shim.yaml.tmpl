@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-shim: /var/run/image-cri-shim.sock
-cri: /var/run/cri-dockerd.sock
+shim: {{.SEALOS_SYS_IMAGE_ENDPOINT}}
+cri: {{.SEALOS_SYS_CRI_ENDPOINT}}
 address: http://{{ .registryDomain }}:{{ .registryPort }}
 force: true
 debug: false
