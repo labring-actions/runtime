@@ -15,6 +15,6 @@ ENV registryData=/var/lib/registry \
     registryUsername=admin \
     registryPassword=passw0rd \
     defaultVIP=10.103.97.2 \
-    SEALOS_SYS_CRI_ENDPOINT=/var/run/cri-dockerd.sock \
+    SEALOS_SYS_CRI_ENDPOINT=/run/k3s/containerd/containerd.sock \
     SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock
 COPY . .
