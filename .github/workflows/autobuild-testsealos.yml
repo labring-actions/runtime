@@ -15,5 +15,6 @@ jobs:
           ./sealos version
           cd k3s && cp -rf  ../registry/ . && cd ..
           ./sealos images
+          cd k3s && mkdir -p bin && wget https://github.com/k3s-io/k3s/releases/download/v1.27.4%2Bk3s1/k3s && chmod a+x k3s && cd ..
           cd k3s && ../sealos build -t xxx . && cd ../
           ./sealos images
