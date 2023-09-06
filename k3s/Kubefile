@@ -21,6 +21,6 @@ ENV registryData=/var/lib/registry \
     SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock \
     sandboxImage=rancher/mirrored-pause:3.6
 COPY --from=docker.io/labring/kubernetes:v1.25.13  opt opt
-COPY --from=docker.io/labring/kubernetes:v1.25.13  cri/image-cri-shim opt/image-cri-shim
-COPY --from=docker.io/labring/kubernetes:v1.25.13  cri/registry opt/registry
+COPY --from=docker.io/labring/kubernetes:v1.25.13  cri/image-cri-shim cri/image-cri-shim
+COPY --from=docker.io/labring/kubernetes:v1.25.13  cri/registry cri/registry
 COPY . .
