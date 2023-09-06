@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright © 2022 sealos.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,19 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cd "$(dirname "$0")" >/dev/null 2>&1 || exit
-source common.sh
-
-[ -d /etc/rancher/k3s ] || mkdir /etc/rancher/k3s
-[ -f ../etc/registries.yaml ] && cp -rf ../etc/registries.yaml /etc/rancher/k3s/
-
-if ! bash init-shim.sh; then
-  error "====init image-cri-shim failed!===="
-fi
-
-
-if ! bash init-kube.sh; then
-  error "====init kubelet failed!===="
-fi
-
-logger "init rootfs success"
+image-endpoint: unix://{{.SEALOS_SYS_IMAGE_ENDPOINT}}
+runtime-endpoint: unix://{{.SEALOS_SYS_CRI_ENDPOINT}}

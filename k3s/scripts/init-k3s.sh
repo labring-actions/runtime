@@ -60,7 +60,7 @@ for bin in /var/lib/rancher/k3s/data/**/bin/; do
 done
 #need after cri-shim
 logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
-crictl pull ${registryDomain}:${registryPort}/${sandboxImage}
+crictl -c /etc/crictl.yaml  pull ${registryDomain}:${registryPort}/${sandboxImage}
 mkdir -p /etc/systemd/system
 cp ../etc/kubelet.service /etc/systemd/system/
 [ -d /var/lib/kubelet ] || mkdir /var/lib/kubelet

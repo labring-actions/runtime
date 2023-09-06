@@ -3,11 +3,13 @@ MAINTAINER sealos
 LABEL init="init.sh" \
       init-cri="init-cri.sh" \
       clean="clean.sh" \
-      clean-cri="clean-cri.sh \$criData \$criDockerdData" \
+      clean-cri="clean-cri.sh" \
       check="check.sh \$registryData" \
       init-registry="init-registry.sh \$registryData \$registryConfig" \
       clean-registry="clean-registry.sh \$registryData \$registryConfig" \
-      vip="\$defaultVIP"
+      vip="\$defaultVIP" \
+      sandboxImage="\$sandboxImage" \
+      imageCRIEndpoint="\$SEALOS_SYS_IMAGE_ENDPOINT"
 ENV registryData=/var/lib/registry \
     registryConfig=/etc/registry \
     registryDomain=sealos.hub \
@@ -16,5 +18,9 @@ ENV registryData=/var/lib/registry \
     registryPassword=passw0rd \
     defaultVIP=10.103.97.2 \
     SEALOS_SYS_CRI_ENDPOINT=/run/k3s/containerd/containerd.sock \
-    SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock
+    SEALOS_SYS_IMAGE_ENDPOINT=/var/run/image-cri-shim.sock \
+    sandboxImage=rancher/mirrored-pause:3.6
+COPY --from=docker.io/labring/kubernetes:v1.25.13  opt opt
+COPY --from=docker.io/labring/kubernetes:v1.25.13  cri/image-cri-shim opt/image-cri-shim
+COPY --from=docker.io/labring/kubernetes:v1.25.13  cri/registry opt/registry
 COPY . .

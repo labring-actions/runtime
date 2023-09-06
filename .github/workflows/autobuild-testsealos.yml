@@ -1,0 +1,19 @@
+name: Auto test for sealos rootfs
+on:
+  workflow_dispatch:
+jobs:
+  install-sealos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Trace memory
+        run: |
+          wget https://github.com/labring/sealos/releases/download/v4.3.3/sealos_4.3.3_linux_amd64.tar.gz
+          tar -zxf  sealos_4.3.3_linux_amd64.tar.gz sealos 
+          chmod a+x sealos
+          ./sealos version
+          cd k3s && cp -rf  ../registry/ . && cd ..
+          ./sealos images
+          ./sealos build -t xxx . 
+          ./sealos images

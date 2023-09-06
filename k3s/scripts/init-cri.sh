@@ -14,17 +14,4 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
-
-[ -d /etc/rancher/k3s ] || mkdir /etc/rancher/k3s
-[ -f ../etc/registries.yaml ] && cp -rf ../etc/registries.yaml /etc/rancher/k3s/
-
-if ! bash init-shim.sh; then
-  error "====init image-cri-shim failed!===="
-fi
-
-
-if ! bash init-kube.sh; then
-  error "====init kubelet failed!===="
-fi
-
-logger "init rootfs success"
+logger "using buildin containerd, skip init cri!"
