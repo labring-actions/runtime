@@ -36,6 +36,6 @@ jobs:
           ./sealos images
           cd k3s && mkdir -p bin && wget https://github.com/k3s-io/k3s/releases/download/v1.27.4%2Bk3s1/k3s-arm64 && chmod a+x k3s-arm64 && mv k3s-arm64 bin/k3s && cd ..
           cd k3s && sed -i 's#v1.25.13#v1.25.13-arm64#g' Kubefile && cd ../
-          cd k3s && ../sealos build -t xxx-arm64 . && cd ../
+          cd k3s && ../sealos build --platform=linux/arm64/v8 -t xxx-arm64 . && cd ../
           ./sealos images
 
