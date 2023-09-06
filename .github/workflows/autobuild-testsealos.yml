@@ -15,5 +15,5 @@ jobs:
           ./sealos version
           cd k3s && cp -rf  ../registry/ . && cd ..
           ./sealos images
-          cd k3s && ../sealos build -t xxx . 
+          cd k3s && ../sealos build -t xxx . && cd ../
           ./sealos images
