@@ -117,18 +117,14 @@ check_file_exits() {
 }
 
 
-check_port_inuse() {
+turn_off_all_service() {
   for service in /etc/systemd/system/k3s*.service; do
       [ -s $service ] && systemctl stop $(basename $service)
   done
   for service in /etc/init.d/k3s*; do
       [ -x $service ] && $service stop
   done
-  logger "Check port reserved port 5050..5054 inuse. Please wait..."
-  for port in {5050..5054}; do
-    portOut="$(../opt/lsof -i :"${port}")"
-    if [ -n "$portOut" ]; then
-      error "Port: $port occupied. Please turn off port service."
-    fi
-  done
+  systemctl stop registry
+  systemctl stop image-cri-shim
+  logger "Turn off all service for k3s"
 }

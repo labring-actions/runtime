@@ -15,6 +15,6 @@
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 storage=${1:-/var/lib/registry}
-check_port_inuse
+turn_off_all_service
 check_file_exits $storage
 logger "check root,port,cri success"
