@@ -46,13 +46,13 @@ for cmd in kubectl crictl ctr; do
     if [ ! -e /usr/bin/${cmd} ] ; then
         which_cmd=$(command -v ${cmd} 2>/dev/null || true)
         if [ -z "${which_cmd}" ]; then
-            info "Creating /usr/bin/${cmd} symlink to k3s"
+            logger "Creating /usr/bin/${cmd} symlink to k3s"
             ln -sf /usr/bin/k3s /usr/bin/${cmd}
         else
-            info "Skipping /usr/bin/${cmd} symlink to k3s, command exists in PATH at ${which_cmd}"
+            logger "Skipping /usr/bin/${cmd} symlink to k3s, command exists in PATH at ${which_cmd}"
         fi
     else
-        info "Skipping /usr/bin/${cmd} symlink to k3s, already exists"
+        logger "Skipping /usr/bin/${cmd} symlink to k3s, already exists"
     fi
 done
 for bin in /var/lib/rancher/k3s/data/**/bin/; do
@@ -64,6 +64,5 @@ crictl -c /etc/crictl.yaml  pull ${registryDomain}:${registryPort}/${sandboxImag
 mkdir -p /etc/systemd/system
 mkdir -p /etc/rancher/k3s/config.yaml.d
 cp ../etc/k3s-sealos.yaml /etc/rancher/k3s/config.yaml.d/
-cp ../etc/kubelet.service /etc/systemd/system/
-[ -d /var/lib/kubelet ] || mkdir /var/lib/kubelet
-logger "init kubelet success"
+cp ../etc/k3s.service /etc/systemd/system/
+logger "init k3s success"
