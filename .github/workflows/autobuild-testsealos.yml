@@ -2,12 +2,12 @@ name: Auto test for sealos rootfs
 on:
   workflow_dispatch:
 jobs:
-  install-sealos:
+  buildamd64:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Trace memory
+      - name: Build
         run: |
           wget https://github.com/labring/sealos/releases/download/v4.3.3/sealos_4.3.3_linux_amd64.tar.gz
           tar -zxf  sealos_4.3.3_linux_amd64.tar.gz sealos 
@@ -17,16 +17,17 @@ jobs:
           ./sealos images
           cd k3s && mkdir -p bin && wget https://github.com/k3s-io/k3s/releases/download/v1.27.4%2Bk3s1/k3s &&  chmod a+x k3s && mv k3s bin/k3s &&  cd ..
           cd k3s && sed -i 's#v1.25.13#v1.25.13-amd64#g' Kubefile && cd ../
-          cd k3s && ../sealos build -t xxx . && cd ../
+          ./sealos login -u ${{ vars.D_REGISTRY_REPOSITORY }} -p ${{ secrets.D_REGISTRY_TOKEN }} ${{ vars.D_REGISTRY_NAME }}
+          cd k3s && ../sealos build -t ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-amd64 . && cd ../
           ./sealos images
-  
+          ./sealos push ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-arm64
 
-  install-sealos-by-arm64:
+  buildarm64:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Trace memory
+      - name: Build
         run: |
           wget https://github.com/labring/sealos/releases/download/v4.3.3/sealos_4.3.3_linux_amd64.tar.gz
           tar -zxf  sealos_4.3.3_linux_amd64.tar.gz sealos 
@@ -36,6 +37,27 @@ jobs:
           ./sealos images
           cd k3s && mkdir -p bin && wget https://github.com/k3s-io/k3s/releases/download/v1.27.4%2Bk3s1/k3s-arm64 && chmod a+x k3s-arm64 && mv k3s-arm64 bin/k3s && cd ..
           cd k3s && sed -i 's#v1.25.13#v1.25.13-arm64#g' Kubefile && cd ../
-          cd k3s && ../sealos build --platform=linux/arm64/v8 -t xxx-arm64 . && cd ../
+          ./sealos login -u ${{ vars.D_REGISTRY_REPOSITORY }} -p ${{ secrets.D_REGISTRY_TOKEN }} ${{ vars.D_REGISTRY_NAME }}
+          cd k3s && ../sealos build --platform=linux/arm64/v8 -t ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-arm64 . && cd ../
           ./sealos images
+          ./sealos push ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-arm64
 
+
+  build_manifest:
+    needs:
+      - buildamd64
+      - buildarm64
+    name: manifest
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Build
+        run: |
+          wget https://github.com/labring/sealos/releases/download/v4.3.3/sealos_4.3.3_linux_amd64.tar.gz
+          tar -zxf  sealos_4.3.3_linux_amd64.tar.gz sealos 
+          chmod a+x sealos
+          ./sealos version
+          IMAGE_NAME=${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest
+          ./sealos manifest create "${IMAGE_NAME}"
+          ./sealos manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-amd64"
+          ./sealos manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-arm64"
+          ./sealos manifest push --all "$IMAGE_NAME" docker://"$IMAGE_NAME" && echo "$IMAGE_NAME push success"
