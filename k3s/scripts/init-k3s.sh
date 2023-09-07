@@ -59,8 +59,6 @@ for bin in /var/lib/rancher/k3s/data/**/bin/; do
     [ -d $bin ] && export PATH=$PATH:$bin:$bin/aux
 done
 #need after cri-shim
-logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
-crictl -c /etc/crictl.yaml  pull ${registryDomain}:${registryPort}/${sandboxImage}
 mkdir -p /etc/systemd/system
 mkdir -p /etc/rancher/k3s/config.yaml.d
 cp ../etc/k3s-sealos.yaml /etc/rancher/k3s/config.yaml.d/
