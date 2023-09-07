@@ -40,7 +40,7 @@ if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; 
     echo "$sealos_e"
   } >>/etc/security/limits.conf
 fi
-
+cp -a k3s-killall.sh /usr/bin
 cp -a ../bin/* /usr/bin
 for cmd in kubectl crictl ctr; do
     if [ ! -e /usr/bin/${cmd} ] ; then
