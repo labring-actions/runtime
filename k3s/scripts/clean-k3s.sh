@@ -32,7 +32,7 @@ fi
 
 SYSTEM_NAME=k3s
 
-BIN_DIR=/usr/local/bin
+BIN_DIR=/usr/bin
 
 ${BIN_DIR}/k3s-killall.sh
 
