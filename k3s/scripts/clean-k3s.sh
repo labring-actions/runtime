@@ -69,4 +69,4 @@ rm -rf /var/lib/rancher/k3s
 rm -rf /var/lib/kubelet
 rm -f ${BIN_DIR}/k3s
 
-logger "clean kubelet success"
+logger "clean k3s success"

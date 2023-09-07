@@ -30,7 +30,7 @@ cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
   v=${str#*=}
   echo "$k=$v # sealos"
 done >>/etc/sysctl.conf
-bash /usr/bin/kubelet-pre-start.sh
+bash /usr/bin/k3s-pre-start.sh
 sealos_b='### sealos begin ###'
 sealos_e='### sealos end ###'
 if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; then

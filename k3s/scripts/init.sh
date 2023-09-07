@@ -24,7 +24,7 @@ fi
 
 
 if ! bash init-k3s.sh; then
-  error "====init kubelet failed!===="
+  error "====init k3s failed!===="
 fi
 
 logger "init rootfs success"
