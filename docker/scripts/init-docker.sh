@@ -34,7 +34,6 @@ if ! command_exists docker; then
   systemctl restart docker.service
   cp ../etc/daemon.json /etc/docker
 fi
-disable_selinux
 systemctl daemon-reload
 systemctl restart docker.service
 check_status docker

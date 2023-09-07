@@ -26,7 +26,11 @@ cp -au ../cri/registry /usr/bin/
 cp -a ../etc/registry_config.yml "$CONFIG"
 cp -a ../etc/registry_htpasswd "$CONFIG"
 
-disable_selinux
+if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then
+    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+    setenforce 0
+fi
+
 check_service start registry
 check_status registry
 
