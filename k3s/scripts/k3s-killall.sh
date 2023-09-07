@@ -3,8 +3,6 @@ for bin in /var/lib/rancher/k3s/data/**/bin/; do
     [ -d $bin ] && export PATH=$PATH:$bin:$bin/aux
 done
 
-set -x
-
 for service in /etc/systemd/system/k3s*.service; do
     [ -s $service ] && systemctl stop $(basename $service)
 done
