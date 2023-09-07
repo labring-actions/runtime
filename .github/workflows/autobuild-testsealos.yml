@@ -15,6 +15,8 @@ jobs:
           ./sealos version
           cp -rf  registry/ k3s/
           ./sealos images
+          ls k3s/etc/
+          ls k3s/scripts/
           cd k3s && mkdir -p bin && wget https://github.com/k3s-io/k3s/releases/download/v1.27.4%2Bk3s1/k3s &&  chmod a+x k3s && mv k3s bin/k3s &&  cd ..
           cd k3s && sed -i 's#v1.25.13#v1.25.13-amd64#g' Kubefile && cd ../
           ./sealos login -u ${{ vars.D_REGISTRY_REPOSITORY }} -p ${{ secrets.D_REGISTRY_TOKEN }} ${{ vars.D_REGISTRY_NAME }}
@@ -35,6 +37,8 @@ jobs:
           ./sealos version
           cp -rf  registry/ k3s/
           ./sealos images
+          ls k3s/etc/
+          ls k3s/scripts/
           cd k3s && mkdir -p bin && wget https://github.com/k3s-io/k3s/releases/download/v1.27.4%2Bk3s1/k3s-arm64 && chmod a+x k3s-arm64 && mv k3s-arm64 bin/k3s && cd ..
           cd k3s && sed -i 's#v1.25.13#v1.25.13-arm64#g' Kubefile && cd ../
           ./sealos login -u ${{ vars.D_REGISTRY_REPOSITORY }} -p ${{ secrets.D_REGISTRY_TOKEN }} ${{ vars.D_REGISTRY_NAME }}
