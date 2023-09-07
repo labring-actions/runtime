@@ -15,7 +15,7 @@
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 
-[ -d /etc/rancher/k3s ] || mkdir /etc/rancher/k3s
+[ -d /etc/rancher/k3s ] || mkdir -p /etc/rancher/k3s
 [ -f ../etc/registries.yaml ] && cp -rf ../etc/registries.yaml /etc/rancher/k3s/
 
 if ! bash init-shim.sh; then
@@ -23,7 +23,7 @@ if ! bash init-shim.sh; then
 fi
 
 
-if ! bash init-kube.sh; then
+if ! bash init-k3s.sh; then
   error "====init kubelet failed!===="
 fi
 
