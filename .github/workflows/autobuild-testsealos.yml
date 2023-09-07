@@ -60,4 +60,5 @@ jobs:
           ./sealos manifest create "${IMAGE_NAME}"
           ./sealos manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-amd64"
           ./sealos manifest add "$IMAGE_NAME" docker://"$IMAGE_NAME-arm64"
+          ./sealos login -u ${{ vars.D_REGISTRY_REPOSITORY }} -p ${{ secrets.D_REGISTRY_TOKEN }} ${{ vars.D_REGISTRY_NAME }}
           ./sealos manifest push --all "$IMAGE_NAME" docker://"$IMAGE_NAME" && echo "$IMAGE_NAME push success"
