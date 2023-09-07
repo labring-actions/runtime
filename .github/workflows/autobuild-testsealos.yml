@@ -20,7 +20,7 @@ jobs:
           ./sealos login -u ${{ vars.D_REGISTRY_REPOSITORY }} -p ${{ secrets.D_REGISTRY_TOKEN }} ${{ vars.D_REGISTRY_NAME }}
           cd k3s && ../sealos build -t ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-amd64 . && cd ../
           ./sealos images
-          ./sealos push ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-arm64
+          ./sealos push ${{ vars.D_REGISTRY_NAME }}/${{ vars.D_REGISTRY_REPOSITORY }}/k3s:latest-amd64
 
   buildarm64:
     runs-on: ubuntu-latest
