@@ -63,11 +63,9 @@ getshims() {
 killtree $({ set +x; } 2>/dev/null; getshims; set -x)
 
 do_unmount_and_remove() {
-    set +x
     while read -r _ path _; do
         case "$path" in $1*) echo "$path" ;; esac
     done < /proc/self/mounts | sort -r | xargs -r -t -n 1 sh -c 'umount "$0" && rm -rf "$0"'
-    set -x
 }
 
 do_unmount_and_remove '/run/k3s'
