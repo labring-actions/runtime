@@ -62,7 +62,8 @@ done
 logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
 crictl -c /etc/crictl.yaml  pull ${registryDomain}:${registryPort}/${sandboxImage}
 mkdir -p /etc/systemd/system
+mkdir -p /etc/rancher/k3s/config.yaml.d
+cp ../etc/k3s-sealos.yaml /etc/rancher/k3s/config.yaml.d/
 cp ../etc/kubelet.service /etc/systemd/system/
 [ -d /var/lib/kubelet ] || mkdir /var/lib/kubelet
-systemctl enable kubelet
 logger "init kubelet success"
