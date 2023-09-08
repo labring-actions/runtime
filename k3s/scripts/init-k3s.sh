@@ -61,6 +61,6 @@ done
 #need after cri-shim
 mkdir -p /etc/systemd/system
 mkdir -p /etc/rancher/k3s/config.yaml.d
-cp ../etc/k3s-sealos.yaml /etc/rancher/k3s/config.yaml.d/
+cp ../etc/zz-k3s-sealos.yaml /etc/rancher/k3s/config.yaml.d/
 cp ../etc/k3s.service /etc/systemd/system/
 logger "init k3s success"
