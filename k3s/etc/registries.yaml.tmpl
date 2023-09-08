@@ -2,3 +2,8 @@ mirrors:
   {{ .registryDomain }}:{{ .registryPort }}:
     endpoint:
       - "http://{{ .registryDomain }}:{{ .registryPort }}"
+configs:
+  {{ .registryDomain }}:{{ .registryPort }}:
+    auth:
+      username: {{.registryUsername}}
+      password: {{.registryPassword}}
