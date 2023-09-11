@@ -3,6 +3,7 @@
 set -e
 
 readonly CRI_TYPE=${criType?}
+readonly KUBE_TYPE=${kubeType:-k8s}
 
 readonly IMAGE_HUB_REGISTRY=${registry:-}
 readonly IMAGE_HUB_REPO=${repo?}
@@ -66,6 +67,12 @@ for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
     until curl -sL "https://github.com/kubernetes/kubernetes/raw/master/CHANGELOG/$K8S_MD"; do sleep 3; done |
       grep -E '^- \[v[0-9\.]+\]' | awk '{print $2}' | awk -F\[ '{print $2}' | awk -F\] '{print $1}' >".versions/$K8S_MD.cached"
     head -n 1 ".versions/$K8S_MD.cached" >".versions/$K8S_MD.latest"
+    case $KUBE_TYPE in
+    k3s)
+      git ls-remote --refs --sort="-version:refname" --tags "https://github.com/k3s-io/k3s.git" | cut -d/ -f3- | grep -E "^v$(cut -d. -f-2 ".versions/$K8S_MD.latest").[0-9]+\+k3s[0-9]$" | head -n 1 >".versions/$K8S_MD.cached"
+      cp ".versions/$K8S_MD.cached" ".versions/$K8S_MD.latest"
+      ;;
+    esac
     cat ".versions/$K8S_MD.cached"
   )
   [[ -s ".versions/$K8S_MD" ]] || cp ".versions/$K8S_MD.latest" ".versions/$K8S_MD"

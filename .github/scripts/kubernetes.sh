@@ -6,6 +6,7 @@ readonly ERR_CODE=127
 
 readonly ARCH=${arch?}
 readonly CRI_TYPE=${criType?}
+readonly KUBE_TYPE=${kubeType:-k8s}
 readonly KUBE=${kubeVersion?}
 readonly SEALOS=${sealoslatest?}
 
@@ -25,7 +26,7 @@ mkdir -p "$ROOT" "$PATCH"
 
 cp -a "$CRI_TYPE"/* "$ROOT"
 cp -a registry/* "$ROOT"
-cp -a k8s/* "$ROOT"
+cp -a "$KUBE_TYPE"/* "$ROOT"
 
 # debug for sealos run
 {
@@ -56,7 +57,7 @@ else
 fi
 
 # crictl helm kubeadm,kubectl,kubelet conntrack registry and cri(kubelet)
-MOUNT_KUBE=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:kubernetes-v$KUBE-$ARCH")")
+MOUNT_KUBE=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:kubernetes-v${KUBE%+*}-$ARCH")")
 MOUNT_CRIO=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:cri-v$KUBE_XY-$ARCH")")
 MOUNT_TOOLS=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:tools-$ARCH")")
 sudo tar -xzf "$MOUNT_CRIO"/cri/crictl.tar.gz -C bin/
@@ -92,6 +93,10 @@ docker)
   esac
   ;;
 esac
+if grep k3s <<<"$KUBE"; then
+  IMAGE_KUBE=k3s
+  rm -f bin/crictl cri/cri-containerd.tar.gz
+fi
 
 # define ImageTag for kube
 if [[ "${SEALOS//./}" =~ ^[0-9]+$ ]] && [[ -z "$sealosPatch" ]]; then
@@ -100,12 +105,12 @@ if [[ "${SEALOS//./}" =~ ^[0-9]+$ ]] && [[ -z "$sealosPatch" ]]; then
     until curl -sL "https://api.github.com/repos/labring/sealos/releases/latest"; do sleep 3; done | grep tarball_url | awk -F\" '{print $(NF-1)}' | awk -F/ '{print $NF}' | cut -dv -f2
   )" ]]; then
     IMAGE_PUSH_NAME=(
-      "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v$KUBE-$ARCH"
-      "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v$KUBE-$SEALOS-$ARCH"
+      "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v${KUBE%+*}-$ARCH"
+      "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v${KUBE%+*}-$SEALOS-$ARCH"
     )
   else
     IMAGE_PUSH_NAME=(
-      "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v$KUBE-$SEALOS-$ARCH"
+      "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:v${KUBE%+*}-$SEALOS-$ARCH"
     )
   fi
 else
@@ -130,10 +135,23 @@ echo "$ipvsImage" >images/shim/LvscareImageList
 
 # update Kubefile
 pauseImage=$(sudo grep /pause: "$MOUNT_KUBE/images/shim/DefaultImageList")
-# shellcheck disable=SC2002
-cat Kubefile |
-  sed -E "s#^FROM .+#FROM $IMAGE_CACHE_NAME:kubernetes-v$KUBE-$ARCH#" >"Kubefile.$(uname)"
-mv -fv "Kubefile.$(uname)" Kubefile
+if grep k3s <<<"$KUBE"; then
+  case $ARCH in
+  amd64)
+    readonly K3S_DL="https://github.com/k3s-io/k3s/releases/download/v$KUBE/k3s"
+    ;;
+  arm64)
+    readonly K3S_DL="https://github.com/k3s-io/k3s/releases/download/v$KUBE/k3s-$ARCH"
+    ;;
+  esac
+  curl -fsSLo bin/k3s "$K3S_DL"
+  chmod a+x bin/k3s
+  curl -fsSL "https://github.com/k3s-io/k3s/releases/download/v$KUBE/k3s-images.txt" | sed "/pause:/d" >images/shim/DefaultImageList
+  echo "$pauseImage" >>images/shim/DefaultImageList
+else
+  sed -E "s#^FROM .+#FROM $IMAGE_CACHE_NAME:kubernetes-v${KUBE%+*}-$ARCH#" Kubefile >"Kubefile.$(uname)"
+  mv -fv "Kubefile.$(uname)" Kubefile
+fi
 
 #### building ###
 IMAGE_BUILD="$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:build-$(date +%s)"
@@ -144,11 +162,12 @@ sudo sealos build $(
   cat <<EOF | while read -r kv; do echo --label=$kv; done | xargs
 sealos.io.type=rootfs
 sealos.io.version=v1beta1
-version=v$KUBE
+version=v${KUBE%+*}
 image=$ipvsImage
 EOF
 ) $(
   cat <<EOF | while read -r kv; do echo --env=$kv; done | xargs
+defaultVIP=10.103.97.2
 sandboxImage=${pauseImage#*/}
 EOF
 ) -t "$IMAGE_BUILD" --platform "linux/$ARCH" .
@@ -157,39 +176,50 @@ EOF
 if [[ amd64 == "$ARCH" ]]; then
   if [[ unstable == "$RELEASE" ]]; then
     dpkg-query --search "$(command -v containerd)" "$(command -v docker)"
-    sudo apt-get remove -y moby-buildx moby-cli moby-compose moby-containerd moby-engine &>/dev/null
+    sudo apt-get remove -y moby-buildx moby-cli moby-compose moby-containerd moby-engine \
+      docker docker-ce docker-ce-cli docker-engine docker.io containerd containerd.io \
+      runc &>/dev/null
+    sudo rm -rf /var/run/docker.sock /run/containerd/containerd.sock
     sudo systemctl unmask "${CRI_TYPE//-/}" || true
     sudo mkdir -p /sys/fs/cgroup/systemd
     sudo mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd || true
     if ! sudo sealos run "$IMAGE_BUILD" --single; then
-      case $CRI_TYPE in
-      containerd)
-        "$CRI_TYPE" --version
-        ;;
-      cri-o)
-        "$CRI_TYPE" --version
-        ;;
-      docker)
-        "$CRI_TYPE" info
-        ;;
-      esac
-      sudo crictl ps -a || true
-      if [[ "${KUBE_XY//./}" -le 116 ]]; then
-        export SEALOS_RUN="skipped::compatibility"
-        echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
-        echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
-        echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+      if grep k3s <<<"$KUBE"; then
+        export SEALOS_RUN="skipped::k3s"
       else
-        export SEALOS_RUN="failed"
-        systemctl status "${CRI_TYPE//-/}" || true
-        journalctl -xeu "${CRI_TYPE//-/}" || true
-        systemctl status kubelet || true
-        journalctl -xeu kubelet || true
+        case $CRI_TYPE in
+        containerd)
+          "$CRI_TYPE" --version
+          ;;
+        cri-o)
+          "$CRI_TYPE" --version
+          ;;
+        docker)
+          "$CRI_TYPE" info
+          ;;
+        esac
+        sudo crictl ps -a || true
+        if [[ "${KUBE_XY//./}" -le 116 ]]; then
+          export SEALOS_RUN="skipped::compatibility"
+          echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+          echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+          echo "Incompatible versions $KUBE($CRI_TYPE) fail testing"
+        else
+          export SEALOS_RUN="failed"
+          systemctl status "${CRI_TYPE//-/}" || true
+          journalctl -xeu "${CRI_TYPE//-/}" || true
+          systemctl status kubelet || true
+          journalctl -xeu kubelet || true
+        fi
       fi
     else
       export SEALOS_RUN="succeed::run"
       mkdir -p "$HOME/.kube"
-      sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
+      if grep k3s <<<"$KUBE"; then
+        sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
+      else
+        sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
+      fi
       sudo chown "$(whoami)" "$HOME/.kube/config"
       kubectl get nodes --no-headers -oname | while read -r node; do kubectl get "$node" -o template='{{range .spec.taints}}{{.key}}{{"\n"}}{{end}}' | while read -r taint; do
         # shellcheck disable=SC2086
