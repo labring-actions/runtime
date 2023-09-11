@@ -25,4 +25,4 @@ RestartSec=5s
 ExecStartPre=/bin/sh -xc '! /usr/bin/systemctl is-enabled --quiet nm-cloud-setup.service'
 ExecStartPre=-/sbin/modprobe br_netfilter
 ExecStartPre=-/sbin/modprobe overlay
-ExecStart=/usr/bin/k3s {{ if contains "master" .SEALOS_SYS_K3S_MODE }}server{{ else }}agent{{end}}
+ExecStart=/usr/bin/k3s {{ if and (.SEALOS_SYS_RUN_MODE) (contains "master" .SEALOS_SYS_RUN_MODE) }}server{{ else }}agent{{end}}
