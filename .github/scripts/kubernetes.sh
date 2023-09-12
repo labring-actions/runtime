@@ -36,6 +36,11 @@ cp -a "$KUBE_TYPE"/* "$ROOT"
 pushd "$ROOT"
 mkdir -p bin cri opt images/shim
 
+if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]]; then
+  echo "INFO::skip $KUBE(build for k3s) when $SEALOS(sealos<=4.3.3)"
+  exit
+fi
+
 MOUNT_CRI=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:cri-$ARCH")")
 # Check support for kube-v1.26+
 if [[ "${KUBE_XY//./}" -ge 126 ]] && [[ "${SEALOS_XYZ//./}" -le 413 ]] && [[ -z "$sealosPatch" ]]; then
