@@ -33,4 +33,5 @@ if kubectl version; then
   checker
   kubectl get pods -owide --all-namespaces
   kubectl get node -owide
+  crictl images
 fi
