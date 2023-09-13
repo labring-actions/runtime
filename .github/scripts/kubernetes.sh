@@ -8,6 +8,10 @@ readonly ARCH=${arch?}
 readonly CRI_TYPE=${criType?}
 readonly KUBE_TYPE=${kubeType:-k8s}
 readonly KUBE=${kubeVersion?}
+if [[ "$sealoslatest" == latest ]]; then
+  export sealosPatch="ghcr.io/labring/sealos-patch:latest"
+  sealoslatest=$(until curl -sL "https://api.github.com/repos/labring/sealos/releases/latest" | grep tarball_url; do sleep 3; done | awk -F\" '{print $(NF-1)}' | awk -F/ '{print $NF}' | cut -dv -f2)
+fi
 readonly SEALOS=${sealoslatest?}
 
 readonly KUBE_XY="${KUBE%.*}"
@@ -36,7 +40,7 @@ cp -a "$KUBE_TYPE"/* "$ROOT"
 pushd "$ROOT"
 mkdir -p bin cri opt images/shim
 
-if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]]; then
+if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]] && [[ -z "$sealosPatch" ]]; then
   echo "INFO::skip $KUBE(build for k3s) when $SEALOS(sealos<=4.3.3)"
   exit
 fi
@@ -52,14 +56,17 @@ fi
 # image-cri-shim sealctl
 if [[ -n "$sealosPatch" ]]; then
   rmdir "$PATCH"
+  sudo docker run --rm -v "/usr/bin:/pwd" --entrypoint /bin/sh ghcr.io/labring/sealos:latest -c "cp -a /usr/bin/sealos /pwd"
   sudo cp -au "$(sudo buildah mount "$(sudo buildah from "$sealosPatch-$ARCH")")" "$PATCH"
   tree "$PATCH"
   sudo cp -au "$PATCH"/* .
 else
+  sudo docker run --rm -v "/usr/bin:/pwd" --entrypoint /bin/sh "$IMAGE_CACHE_NAME:sealos-v$SEALOS-$ARCH" -c "cp -a /sealos/sealos /pwd"
   MOUNT_SEALOS=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:sealos-v$SEALOS-$ARCH")")
   sudo cp -au "$MOUNT_SEALOS"/sealos/image-cri-shim cri/
   sudo cp -au "$MOUNT_SEALOS"/sealos/sealctl opt/
 fi
+sudo sealos version
 
 # crictl helm kubeadm,kubectl,kubelet conntrack registry and cri(kubelet)
 MOUNT_KUBE=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:kubernetes-v${KUBE%+*}-$ARCH")")
@@ -100,7 +107,6 @@ docker)
 esac
 if grep k3s <<<"$KUBE"; then
   IMAGE_KUBE=k3s
-  rm -f bin/crictl cri/cri-containerd.tar.gz
 fi
 
 # define ImageTag for kube
@@ -133,7 +139,7 @@ sudo chown -R "$(whoami)" "$ROOT"
 if rmdir "$PATCH" 2>/dev/null; then
   ipvsImage="ghcr.io/labring/lvscare:v$SEALOS"
 else
-  ipvsImage="${sealosPatch%%/*}/labring/lvscare:$(find "registry" -type d | grep -E "tags/.+-$ARCH$" | awk -F/ '{print $NF}')"
+  ipvsImage="$(cat images/shim/*vscare*)"
   rm -fv images/shim/*vscare*
 fi
 echo "$ipvsImage" >images/shim/LvscareImageList
@@ -141,6 +147,7 @@ echo "$ipvsImage" >images/shim/LvscareImageList
 # update Kubefile
 pauseImage=$(sudo grep /pause: "$MOUNT_KUBE/images/shim/DefaultImageList")
 if grep k3s <<<"$KUBE"; then
+  rm -fv bin/crictl bin/conntrack cri/cri-containerd.tar.gz cri/libseccomp.tar.gz opt/lsof
   case $ARCH in
   amd64)
     readonly K3S_DL="https://github.com/k3s-io/k3s/releases/download/v$KUBE/k3s"
@@ -197,7 +204,7 @@ if [[ amd64 == "$ARCH" ]]; then
           "$CRI_TYPE" --version
           ;;
         cri-o)
-          "$CRI_TYPE" --version
+          "${CRI_TYPE//-/}" --version
           ;;
         docker)
           "$CRI_TYPE" info

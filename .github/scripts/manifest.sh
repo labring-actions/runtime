@@ -14,6 +14,10 @@ readonly IMAGE_CACHE_NAME="ghcr.io/labring-actions/cache"
 
 readonly IMAGE_TAG=${version?}
 readonly KUBE="${IMAGE_TAG%%-*}"
+if [[ "$sealoslatest" == latest ]]; then
+  export sealosPatch="ghcr.io/labring/sealos-patch:latest"
+  sealoslatest=$(until curl -sL "https://api.github.com/repos/labring/sealos/releases/latest" | grep tarball_url; do sleep 3; done | awk -F\" '{print $(NF-1)}' | awk -F/ '{print $NF}' | cut -dv -f2)
+fi
 readonly sealoslatest="${sealoslatest:-IMAGE_TAG#*-}"
 readonly SEALOS=${sealoslatest?}
 

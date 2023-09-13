@@ -11,11 +11,15 @@ else
   sealosVersion=$defaultVersion
 fi
 
-until curl -sL https://api.github.com/repos/labring/sealos/tags | yq .[].name | grep -E "^v.+$"; do sleep 3; done >.tags
-if ! grep "$sealosVersion" .tags >/dev/null; then
-  cat .tags
-  echo "sealos version $sealosVersion does not exist"
-  exit 127
+if [[ "$sealosVersion" == latest ]]; then
+  echo "sealos latest for development"
+else
+  until curl -sL https://api.github.com/repos/labring/sealos/tags | yq .[].name | grep -E "^v.+$"; do sleep 3; done >.tags
+  if ! grep "$sealosVersion" .tags >/dev/null; then
+    cat .tags
+    echo "sealos version $sealosVersion does not exist"
+    exit 127
+  fi
 fi
 
 echo "sealos: $sealosVersion"

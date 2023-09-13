@@ -7,6 +7,10 @@ readonly KUBE_TYPE=${kubeType:-k8s}
 
 readonly IMAGE_HUB_REGISTRY=${registry:-}
 readonly IMAGE_HUB_REPO=${repo?}
+if [[ "$sealoslatest" == latest ]]; then
+  export sealosPatch="ghcr.io/labring/sealos-patch:latest"
+  sealoslatest=$(until curl -sL "https://api.github.com/repos/labring/sealos/releases/latest" | grep tarball_url; do sleep 3; done | awk -F\" '{print $(NF-1)}' | awk -F/ '{print $NF}' | cut -dv -f2)
+fi
 readonly SEALOS=${sealoslatest?}
 readonly SEALOS_XYZ="${SEALOS%%-*}"
 
@@ -21,6 +25,9 @@ cri-o)
   IMAGE_KUBE=kubernetes-crio
   ;;
 esac
+if grep k3s <<<"$KUBE"; then
+  IMAGE_KUBE=k3s
+fi
 
 # Recursively finds all directories with a go.mod file and creates
 # a GitHub Actions JSON output option. This is used by the linter action.
@@ -69,7 +76,7 @@ for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
     head -n 1 ".versions/$K8S_MD.cached" >".versions/$K8S_MD.latest"
     case $KUBE_TYPE in
     k3s)
-      git ls-remote --refs --sort="-version:refname" --tags "https://github.com/k3s-io/k3s.git" | cut -d/ -f3- | grep -E "^v$(cut -d. -f-2 ".versions/$K8S_MD.latest").[0-9]+\+k3s[0-9]$" | head -n 1 >".versions/$K8S_MD.cached"
+      git ls-remote --refs --sort="-version:refname" --tags "https://github.com/k3s-io/k3s.git" | cut -d/ -f3- | grep -E "^$(cut -d. -f-2 ".versions/$K8S_MD.latest").[0-9]+\+k3s[0-9]$" | head -n 1 >".versions/$K8S_MD.cached"
       cp ".versions/$K8S_MD.cached" ".versions/$K8S_MD.latest"
       ;;
     esac
