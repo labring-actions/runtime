@@ -138,11 +138,11 @@ sudo chown -R "$(whoami)" "$ROOT"
 # define ImageTag for lvscare(ipvs)
 if rmdir "$PATCH" 2>/dev/null; then
   ipvsImage="ghcr.io/labring/lvscare:v$SEALOS"
+  echo "$ipvsImage" >images/shim/LvscareImageList
 else
   ipvsImage="$(cat images/shim/*vscare*)"
   rm -fv images/shim/*vscare*
 fi
-echo "$ipvsImage" >images/shim/LvscareImageList
 
 # update Kubefile
 pauseImage=$(sudo grep /pause: "$MOUNT_KUBE/images/shim/DefaultImageList")
