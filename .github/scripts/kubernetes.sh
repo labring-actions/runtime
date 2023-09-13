@@ -233,12 +233,8 @@ if [[ amd64 == "$ARCH" ]]; then
         sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
       fi
       sudo chown "$(whoami)" "$HOME/.kube/config"
-      kubectl get nodes --no-headers -oname | while read -r node; do kubectl get "$node" -o template='{{range .spec.taints}}{{.key}}{{"\n"}}{{end}}' | while read -r taint; do
-        # shellcheck disable=SC2086
-        kubectl taint ${node/\// } "$taint"-
-      done; done
       if ! bash /tmp/waitRunning.sh 1 3; then
-        echo "TIMEOUT(waitRunning)"
+          echo "TIMEOUT(waitRunning)"
       fi
     fi
     sudo sealos reset --force
