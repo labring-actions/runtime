@@ -20,7 +20,10 @@ if [[ "$sealoslatest" == latest ]]; then
 fi
 readonly sealoslatest="${sealoslatest:-IMAGE_TAG#*-}"
 readonly SEALOS=${sealoslatest?}
-
+if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]] && [[ -z "$sealosPatch" ]]; then
+  echo "INFO::skip $KUBE(build for k3s) when $SEALOS(sealos<=4.3.3)"
+  exit
+fi
 readonly kube_major="${KUBE%.*}"
 readonly sealos_major="${SEALOS%%-*}"
 if [[ "${kube_major//./}" -ge 126 ]]; then

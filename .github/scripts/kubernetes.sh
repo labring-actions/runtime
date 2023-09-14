@@ -16,7 +16,10 @@ readonly SEALOS=${sealoslatest?}
 
 readonly KUBE_XY="${KUBE%.*}"
 readonly SEALOS_XYZ="${SEALOS%%-*}"
-
+if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]] && [[ -z "$sealosPatch" ]]; then
+  echo "INFO::skip $KUBE(build for k3s) when $SEALOS(sealos<=4.3.3)"
+  exit
+fi
 readonly IMAGE_HUB_REGISTRY=${registry?}
 readonly IMAGE_HUB_REPO=${repo?}
 readonly IMAGE_HUB_USERNAME=${username?}
@@ -40,11 +43,6 @@ cp -a "$KUBE_TYPE"/* "$ROOT"
 pushd "$ROOT"
 mkdir -p bin cri opt images/shim
 
-if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]] && [[ -z "$sealosPatch" ]]; then
-  echo "INFO::skip $KUBE(build for k3s) when $SEALOS(sealos<=4.3.3)"
-  exit
-fi
-
 MOUNT_CRI=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:cri-$ARCH")")
 # Check support for kube-v1.26+
 if [[ "${KUBE_XY//./}" -ge 126 ]] && [[ "${SEALOS_XYZ//./}" -le 413 ]] && [[ -z "$sealosPatch" ]]; then
@@ -61,7 +59,7 @@ if [[ -n "$sealosPatch" ]]; then
   tree "$PATCH"
   sudo cp -au "$PATCH"/* .
 else
-  sudo docker run --rm -v "/usr/bin:/pwd" --entrypoint /bin/sh "$IMAGE_CACHE_NAME:sealos-v$SEALOS-$ARCH" -c "cp -a /sealos/sealos /pwd"
+  sudo docker run --rm -v "/usr/bin:/pwd" --entrypoint /bin/sh "$IMAGE_CACHE_NAME:sealos-v$SEALOS-amd64" -c "cp -a /sealos/sealos /pwd"
   MOUNT_SEALOS=$(sudo buildah mount "$(sudo buildah from "$IMAGE_CACHE_NAME:sealos-v$SEALOS-$ARCH")")
   sudo cp -au "$MOUNT_SEALOS"/sealos/image-cri-shim cri/
   sudo cp -au "$MOUNT_SEALOS"/sealos/sealctl opt/
@@ -195,7 +193,7 @@ if [[ amd64 == "$ARCH" ]]; then
     sudo systemctl unmask "${CRI_TYPE//-/}" || true
     sudo mkdir -p /sys/fs/cgroup/systemd
     sudo mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd || true
-    if ! sudo sealos run "$IMAGE_BUILD" --single; then
+    if ! sudo sealos run "$IMAGE_BUILD" labring/flannel:0.22.2 --single; then
       if grep k3s <<<"$KUBE"; then
         export SEALOS_RUN="skipped::k3s"
       else
@@ -234,7 +232,7 @@ if [[ amd64 == "$ARCH" ]]; then
       fi
       sudo chown "$(whoami)" "$HOME/.kube/config"
       if ! bash /tmp/waitRunning.sh 1 3; then
-          echo "TIMEOUT(waitRunning)"
+        echo "TIMEOUT(waitRunning)"
       fi
     fi
     sudo sealos reset --force
