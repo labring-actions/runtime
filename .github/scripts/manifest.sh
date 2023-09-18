@@ -5,6 +5,7 @@ set -eu
 readonly ERR_CODE=127
 
 readonly CRI_TYPE=${criType?}
+readonly KUBE_TYPE=${kubeType:-k8s}
 
 readonly IMAGE_HUB_REGISTRY=${registry?}
 readonly IMAGE_HUB_REPO=${repo?}
@@ -20,6 +21,7 @@ if [[ "$sealoslatest" == latest ]]; then
 fi
 readonly sealoslatest="${sealoslatest:-IMAGE_TAG#*-}"
 readonly SEALOS=${sealoslatest?}
+readonly SEALOS_XYZ="${SEALOS%%-*}"
 if [[ "${SEALOS_XYZ//./}" -le 433 ]] && [[ $KUBE_TYPE == k3s ]] && [[ -z "$sealosPatch" ]]; then
   echo "INFO::skip $KUBE(build for k3s) when $SEALOS(sealos<=4.3.3)"
   exit
