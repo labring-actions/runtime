@@ -14,5 +14,5 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
-logger "using buildin containerd, skip clean cri!"
+logger "using builtin containerd, skip clean cri!"
 
