@@ -13,9 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# First modprobe
+cat <<EOF | xargs modprobe
+bridge
+ip_vs
+overlay
+EOF
 # Open ipvs
 cat <<EOF | xargs modprobe
-ip_vs
 ip_vs_rr
 ip_vs_wrr
 ip_vs_sh
@@ -23,8 +28,6 @@ EOF
 # 1.20 need open br_netfilter
 cat <<EOF | xargs modprobe
 br_netfilter
-bridge
-overlay
 EOF
 # Kernel 4.19 has rebranded nf_conntrack_ipv4 to nf_conntrack
 if ! modprobe -- nf_conntrack >/dev/null 2>&1; then
