@@ -3,9 +3,9 @@ Description=kubelet: The Kubernetes Node Agent
 Documentation=http://kubernetes.io/docs/
 
 [Service]
-ExecStart=/usr/bin/kubelet
-ExecStartPre=-/usr/bin/kubelet-pre-start.sh
-ExecStopPost=-/usr/bin/kubelet-post-stop.sh
+ExecStart={{ default "/usr/bin" .BIN_DIR }}/kubelet
+ExecStartPre=-{{ default "/usr/bin" .BIN_DIR }}/kubelet-pre-start.sh
+ExecStopPost=-{{ default "/usr/bin" .BIN_DIR }}/kubelet-post-stop.sh
 Restart=always
 StartLimitInterval=0
 RestartSec=10

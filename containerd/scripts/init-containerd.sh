@@ -16,15 +16,16 @@ cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 registry_domain=${1:-sealos.hub}
 registry_port=${2:-5000}
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 
 mkdir -p /opt/containerd && tar -zxf ../cri/libseccomp.tar.gz -C /opt/containerd
 echo "/opt/containerd/lib" >/etc/ld.so.conf.d/containerd.conf
 ldconfig
 [ -d /etc/containerd/certs.d/ ] || mkdir /etc/containerd/certs.d/ -p
 cp ../etc/containerd.service /etc/systemd/system/
-tar -zxf ../cri/cri-containerd.tar.gz -C /
+tar -zxf ../cri/cri-containerd.tar.gz --strip-components 2 -C ${BIN_DIR}
 # shellcheck disable=SC2046
-chmod a+x $(tar -tf ../cri/cri-containerd.tar.gz | while read -r binary; do echo "/usr/bin/${binary##*/}"; done | xargs)
+chmod a+x $(tar -tf ../cri/cri-containerd.tar.gz | while read -r binary; do echo "${BIN_DIR}/${binary##*/}"; done | xargs)
 systemctl enable containerd.service
 cp ../etc/config.toml /etc/containerd
 mkdir -p /etc/containerd/certs.d/$registry_domain:$registry_port

@@ -134,8 +134,9 @@ check_file_exits() {
 }
 
 check_port_inuse() {
+  readonly BIN_DIR=${BIN_DIR:-/usr/bin}
   if ! command_exists lsof; then
-    cp -au ../opt/lsof /usr/bin
+    cp -au ../opt/lsof ${BIN_DIR}
   fi
   logger "Check port kubelet port 10249..10259, reserved port 5050..5054 inuse. Please wait..."
   for port in {10249..10259} {5050..5054}; do

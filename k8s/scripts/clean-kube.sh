@@ -14,16 +14,17 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 systemctl stop kubelet
 systemctl disable kubelet
 systemctl daemon-reload
 
-rm -f /usr/bin/conntrack
-rm -f /usr/bin/kubelet-pre-start.sh
-rm -f /usr/bin/kubelet-post-stop.sh
-rm -f /usr/bin/kubeadm
-rm -f /usr/bin/kubectl
-rm -f /usr/bin/kubelet
+rm -f ${BIN_DIR}/conntrack
+rm -f ${BIN_DIR}/kubelet-pre-start.sh
+rm -f ${BIN_DIR}/kubelet-post-stop.sh
+rm -f ${BIN_DIR}/kubeadm
+rm -f ${BIN_DIR}/kubectl
+rm -f ${BIN_DIR}/kubelet
 
 sed -i '/ # sealos/d' /etc/sysctl.conf
 sealos_b='### sealos begin ###'

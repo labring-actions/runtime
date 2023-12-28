@@ -14,6 +14,7 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 # prepare registry storage as directory
 cd "$(dirname "$0")" || error "error for $0"
 
@@ -22,7 +23,7 @@ readonly CONFIG=${2:-/etc/registry}
 
 check_service stop registry
 rm -f /etc/systemd/system/registry.service
-rm -f /usr/bin/registry
+rm -f ${BIN_DIR}/registry
 
 rm -rf "$DATA"
 rm -rf "$CONFIG"

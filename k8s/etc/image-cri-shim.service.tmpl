@@ -2,7 +2,7 @@
 Description=image-cri-shim
 
 [Service]
-ExecStart=/usr/bin/image-cri-shim -f /etc/image-cri-shim.yaml
+ExecStart={{ default "/usr/bin" .BIN_DIR }}/image-cri-shim -f /etc/image-cri-shim.yaml
 Restart=always
 StartLimitInterval=0
 RestartSec=10

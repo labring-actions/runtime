@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 
 # localhost for hosts
 grep 127.0.0.1 <(grep localhost /etc/hosts) || echo "127.0.0.1 localhost" >>/etc/hosts
 grep ::1 <(grep localhost /etc/hosts) || echo "::1 localhost" >>/etc/hosts
 
-cp -a ../scripts/kubelet-pre-start.sh /usr/bin
-cp -a ../scripts/kubelet-post-stop.sh /usr/bin
+cp -a ../scripts/kubelet-pre-start.sh ${BIN_DIR}
+cp -a ../scripts/kubelet-post-stop.sh ${BIN_DIR}
 
 source common.sh
 disable_firewalld
@@ -30,7 +31,7 @@ cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
   v=${str#*=}
   echo "$k=$v # sealos"
 done >>/etc/sysctl.conf
-bash /usr/bin/kubelet-pre-start.sh
+bash ${BIN_DIR}/kubelet-pre-start.sh
 sealos_b='### sealos begin ###'
 sealos_e='### sealos end ###'
 if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; then
@@ -41,7 +42,7 @@ if ! grep -E "($sealos_b|$sealos_e)" /etc/security/limits.conf >/dev/null 2>&1; 
   } >>/etc/security/limits.conf
 fi
 
-cp -a ../bin/* /usr/bin
+cp -a ../bin/* ${BIN_DIR}
 #need after cri-shim
 logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
 crictl pull ${registryDomain}:${registryPort}/${sandboxImage}

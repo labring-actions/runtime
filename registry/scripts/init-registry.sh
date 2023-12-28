@@ -17,11 +17,12 @@ source common.sh
 
 readonly DATA=${1:-/var/lib/registry}
 readonly CONFIG=${2:-/etc/registry}
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 
 mkdir -p "$DATA" "$CONFIG"
 
 cp -a ../etc/registry.service /etc/systemd/system/
-cp -au ../cri/registry /usr/bin/
+cp -au ../cri/registry ${BIN_DIR}/
 
 cp -a ../etc/registry_config.yml "$CONFIG"
 cp -a ../etc/registry_htpasswd "$CONFIG"

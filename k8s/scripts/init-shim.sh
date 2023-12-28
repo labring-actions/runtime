@@ -14,9 +14,10 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 cp -rf ../etc/image-cri-shim.service /etc/systemd/system/
 cp -rf ../etc/image-cri-shim.yaml /etc
-cp -rf ../cri/image-cri-shim /usr/bin
+cp -rf ../cri/image-cri-shim ${BIN_DIR}
 [ -f ../etc/crictl.yaml ] && cp -rf ../etc/crictl.yaml /etc
 systemctl enable image-cri-shim.service
 systemctl daemon-reload
