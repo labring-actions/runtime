@@ -5,7 +5,7 @@ After=network.target local-fs.target
 
 [Service]
 ExecStartPre=-/sbin/modprobe overlay
-ExecStart=/usr/bin/containerd
+ExecStart={{ default "/usr/bin" .BIN_DIR }}/containerd
 
 Type=notify
 Delegate=yes

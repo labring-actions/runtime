@@ -15,6 +15,7 @@
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
 storage=${1:-/var/lib/containerd}
+readonly BIN_DIR=${BIN_DIR:-/usr/bin}
 systemctl stop containerd
 systemctl disable containerd
 rm -rf /etc/containerd
@@ -24,17 +25,17 @@ rm -rf $storage
 rm -rf /run/containerd/containerd.sock
 rm -rf /var/lib/nerdctl
 
-rm -f /usr/bin/containerd
-rm -f /usr/bin/containerd-stress
-rm -f /usr/bin/containerd-shim
-rm -f /usr/bin/containerd-shim-runc-v1
-rm -f /usr/bin/containerd-shim-runc-v2
-rm -f /usr/bin/crictl
+rm -f ${BIN_DIR}/containerd
+rm -f ${BIN_DIR}/containerd-stress
+rm -f ${BIN_DIR}/containerd-shim
+rm -f ${BIN_DIR}/containerd-shim-runc-v1
+rm -f ${BIN_DIR}/containerd-shim-runc-v2
+rm -f ${BIN_DIR}/crictl
 rm -f /etc/crictl.yaml
-rm -f /usr/bin/ctr
-rm -f /usr/bin/ctd-decoder
-rm -f /usr/bin/runc
-rm -f /usr/bin/nerdctl
+rm -f ${BIN_DIR}/ctr
+rm -f ${BIN_DIR}/ctd-decoder
+rm -f ${BIN_DIR}/runc
+rm -f ${BIN_DIR}/nerdctl
 
 rm -rf /opt/containerd
 rm -rf /etc/ld.so.conf.d/containerd.conf
