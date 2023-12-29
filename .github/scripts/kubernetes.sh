@@ -77,15 +77,27 @@ sudo cp -au "$MOUNT_CRI"/cri/lsof opt/
 sudo cp -au "$MOUNT_CRI"/cri/{registry,libseccomp.tar.gz} cri/
 case $CRI_TYPE in
 containerd)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 124 ]]; then
+    echo "INFO::skip $KUBE(kube<1.24) when $SEALOS(sealos>=5)"
+    exit
+  fi
   IMAGE_KUBE=kubernetes
   sudo cp -au "$MOUNT_CRI"/cri/cri-containerd.tar.gz cri/
   ;;
 cri-o)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 124 ]]; then
+    echo "INFO::skip $KUBE(kube<1.24) when $SEALOS(sealos>=5)"
+    exit
+  fi
   IMAGE_KUBE=kubernetes-${CRI_TYPE//-/}
   sudo cp -au "$MOUNT_CRIO"/cri/cri-o.tar.gz cri/
   sudo cp -au "$MOUNT_CRIO"/cri/{install.crio,crio.files} cri/
   ;;
 docker)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 126 ]]; then
+    echo "INFO::skip $KUBE(kube<1.26) when $SEALOS(sealos>=5)"
+    exit
+  fi
   IMAGE_KUBE=kubernetes-$CRI_TYPE
   if [[ "${KUBE_XY//./}" -ge 126 ]]; then
     sudo cp -au "$MOUNT_CRI"/cri/cri-dockerd.tgz cri/
@@ -188,12 +200,13 @@ if [[ amd64 == "$ARCH" ]]; then
     dpkg-query --search "$(command -v containerd)" "$(command -v docker)"
     sudo apt-get remove -y moby-buildx moby-cli moby-compose moby-containerd moby-engine \
       docker docker-ce docker-ce-cli docker-engine docker.io containerd containerd.io \
-      runc &>/dev/null
+      podman &>/dev/null
     sudo rm -rf /var/run/docker.sock /run/containerd/containerd.sock
+    sudo mv -fv /etc/cni/net.d/* /etc/cni
     sudo systemctl unmask "${CRI_TYPE//-/}" || true
     sudo mkdir -p /sys/fs/cgroup/systemd
     sudo mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd || true
-    if ! sudo sealos run "$IMAGE_BUILD" labring/flannel:0.22.2 --single; then
+    if ! sudo sealos run "$IMAGE_BUILD" labring/flannel:0.24.0; then
       if grep k3s <<<"$KUBE"; then
         export SEALOS_RUN="skipped::k3s"
       else
