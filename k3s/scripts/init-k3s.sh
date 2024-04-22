@@ -25,7 +25,7 @@ source common.sh
 disable_firewalld
 
 # Annotate system configuration
-cat ../etc/sysctl.d/*.conf | sort | uniq | while read -r str; do
+cat ../etc/sysctl.d/*.conf | sort | uniq | grep -v ^$ | while read -r str; do
   k=${str%=*}
   v=${str#*=}
   echo "$k=$v # sealos"
