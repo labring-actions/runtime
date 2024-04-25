@@ -34,9 +34,12 @@ oom_score = 0
       [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
           runtime_type = "io.containerd.runc.v2"
-          runtime_engine = ""
-          runtime_root = ""
           [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+            SystemdCgroup = true
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.crun]
+          runtime_type = "io.containerd.runc.v2"
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.crun.options]
+            BinaryName = "/usr/bin/crun"
             SystemdCgroup = true
     [plugins."io.containerd.grpc.v1.cri".registry]
       config_path = "/etc/containerd/certs.d"

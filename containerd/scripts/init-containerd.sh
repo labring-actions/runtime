@@ -24,6 +24,10 @@ ldconfig
 [ -d /etc/containerd/certs.d/ ] || mkdir /etc/containerd/certs.d/ -p
 cp ../etc/containerd.service /etc/systemd/system/
 tar -zxf ../cri/cri-containerd.tar.gz --strip-components 2 -C ${BIN_DIR}
+if "$BIN_DIR/crun_" --version 2>/dev/null | grep ^crun; then
+  cp -a "$BIN_DIR/crun_" "$BIN_DIR/crun"
+  sed -i -E 's~default_runtime_name = ".+"~default_runtime_name = "crun"~' ../etc/config.toml
+fi
 # shellcheck disable=SC2046
 chmod a+x $(tar -tf ../cri/cri-containerd.tar.gz | while read -r binary; do echo "${BIN_DIR}/${binary##*/}"; done | xargs)
 systemctl enable containerd.service
