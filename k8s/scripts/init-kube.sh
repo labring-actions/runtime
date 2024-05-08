@@ -48,8 +48,7 @@ logger "pull pause image ${registryDomain}:${registryPort}/${sandboxImage}"
 crictl pull ${registryDomain}:${registryPort}/${sandboxImage}
 mkdir -p /etc/systemd/system
 cp ../etc/kubelet.service /etc/systemd/system/
-[ -d /etc/systemd/system/kubelet.service.d ] || mkdir /etc/systemd/system/kubelet.service.d
-cp ../etc/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/
+cp -a ../etc/systemd/system /etc/systemd && systemctl daemon-reload
 [ -d /var/lib/kubelet ] || mkdir /var/lib/kubelet
 systemctl enable kubelet
 logger "init kubelet success"
