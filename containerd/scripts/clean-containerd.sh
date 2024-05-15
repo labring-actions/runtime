@@ -36,6 +36,8 @@ rm -f ${BIN_DIR}/ctr
 rm -f ${BIN_DIR}/ctd-decoder
 rm -f ${BIN_DIR}/runc
 rm -f ${BIN_DIR}/nerdctl
+rm -f ${BIN_DIR}/crun
+rm -f ${BIN_DIR}/crun_
 
 rm -rf /opt/containerd
 rm -rf /etc/ld.so.conf.d/containerd.conf
