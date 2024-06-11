@@ -25,7 +25,7 @@ oom_score = 0
 [plugins]
   [plugins."io.containerd.grpc.v1.cri"]
     sandbox_image = "{{ .registryDomain }}:{{ .registryPort }}/{{ .sandboxImage }}"
-    max_container_log_line_size = -1
+    max_container_log_line_size = 16384
     max_concurrent_downloads = 20
     disable_apparmor = {{ .disableApparmor }}
     [plugins."io.containerd.grpc.v1.cri".containerd]
