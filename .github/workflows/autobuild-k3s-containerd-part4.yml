@@ -118,6 +118,7 @@ jobs:
         run: |
           sed -i "s@\./@https://github.com/labring/sealos/blob/main/@g" ./README.md
           sed -i "s@(/docs@(https://github.com/labring/sealos/blob/main/docs@g" ./README.md
+          perl -i -pe 's{(https://github\.com/labring/sealos/blob/main)(.*?\.(png|jpg|jpeg|gif|webp|svg))}{https://raw.githubusercontent.com/labring/sealos/main$2}gi' ./README.md
       - name: Update image description
         uses: peter-evans/dockerhub-description@v4
         with:
