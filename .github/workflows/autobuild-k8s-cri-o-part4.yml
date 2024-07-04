@@ -113,6 +113,10 @@ jobs:
           fetch-depth: 0
           repository: labring/sealos
           ref: main
+      - name: Update Sealos README
+        run: |
+          sed -i "s@\./@https://github.com/labring/sealos/blob/main/@g" ./README.md
+          sed -i "s@(/docs@(https://github.com/labring/sealos/blob/main/docs@g" ./README.md
       - name: Update image description
         uses: peter-evans/dockerhub-description@v4
         with:
