@@ -107,6 +107,19 @@ jobs:
           password: ${{ secrets.D_REGISTRY_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh
+      - name: Checkout Sealos
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          repository: labring/sealos
+          ref: main
+      - name: Update image description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ vars.D_REGISTRY_REPOSITORY }}
+          password: ${{ secrets.D_REGISTRY_TOKEN }}
+          repository: labring/kubernetes-crio
+          readme-filepath: ./README.md
 
   add-tips:
     if: contains(github.event.comment.body, 'imagebuild')
