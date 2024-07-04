@@ -120,6 +120,7 @@ jobs:
           password: ${{ secrets.D_REGISTRY_TOKEN }}
           repository: labring/kubernetes
           readme-filepath: ./README.md
+          enable-url-completion: true
 
   add-tips:
     if: contains(github.event.comment.body, 'imagebuild')
