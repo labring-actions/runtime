@@ -91,17 +91,16 @@ fi
 
 sudo buildah login -u "$IMAGE_HUB_USERNAME" -p "$IMAGE_HUB_PASSWORD" "$IMAGE_HUB_REGISTRY"
 for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
-  if echo "$IMAGE_TAGS" | sed "s~,~\n~g" | while read -r tag; do
+  echo "$IMAGE_TAGS" | sed "s~,~\n~g" | while read -r tag; do
     echo "${IMAGE_NAME%:*}:$tag"
-  done | xargs sudo buildah manifest create --all "mf:${KUBE%+*}-$SEALOS"; then
-    if [[ $(sudo buildah inspect "mf:${KUBE%+*}-$SEALOS" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -eq 2 ]]; then
-      sudo buildah manifest push --rm --all "mf:${KUBE%+*}-$SEALOS" "docker://$IMAGE_NAME" && echo "$IMAGE_NAME push success"
-    else
-      sudo buildah manifest inspect "mf:${KUBE%+*}-$SEALOS" | yq -CP
-      echo "ERROR::TARGETARCH for sealos build"
-      sudo buildah images
-      exit $ERR_CODE
-    fi
+  done | xargs sudo buildah manifest create --all "mf:${KUBE%+*}-$SEALOS" || exit $ERR_CODE
+  if [[ $(sudo buildah inspect "mf:${KUBE%+*}-$SEALOS" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -eq 2 ]]; then
+    sudo buildah manifest push --rm --all "mf:${KUBE%+*}-$SEALOS" "docker://$IMAGE_NAME" && echo "$IMAGE_NAME push success"
+  else
+    sudo buildah manifest inspect "mf:${KUBE%+*}-$SEALOS" | yq -CP
+    echo "ERROR::TARGETARCH for sealos build"
+    sudo buildah images
+    exit $ERR_CODE
   fi
 done
 

@@ -1,4 +1,4 @@
-name: cri-o for k8s 1.24-25
+name: docker for k8s 1.30+
 on:
   workflow_dispatch:
     inputs:
@@ -10,15 +10,15 @@ on:
     types:
       - created
 env:
-  part: 3
+  part: 5
   allBuild: false
   registry: ${{ vars.D_REGISTRY_NAME }}
   repo: ${{ vars.D_REGISTRY_REPOSITORY }}
   sealosPatch: ${{ github.event.inputs.sealosPatch }}
-  criType: cri-o
+  criType: docker
 jobs:
   resolve-issue-sealoslatest:
-    if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/cri-o') || startswith(github.event.comment.body, '/single_part3') || startswith(github.event.comment.body, '/single_cri-o_part3') || contains(github.event.inputs.sealosPatch, 'sealos')
+    if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/docker') || startswith(github.event.comment.body, '/single_part5') || startswith(github.event.comment.body, '/single_docker_part5') || contains(github.event.inputs.sealosPatch, 'sealos')
     runs-on: ubuntu-24.04
     outputs:
       sealoslatest: ${{ steps.set-sealoslatest.outputs.sealoslatest }}
@@ -107,6 +107,26 @@ jobs:
           password: ${{ secrets.D_REGISTRY_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh
+      - name: Checkout Sealos
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          repository: labring/sealos
+          ref: main
+      - name: Update Sealos README
+        run: |
+          sed -i "s@\./@https://github.com/labring/sealos/blob/main/@g" ./README.md
+          sed -i "s@(/docs@(https://github.com/labring/sealos/blob/main/docs@g" ./README.md
+          perl -i -pe 's{(https://github\.com/labring/sealos/blob/main)(.*?\.(png|jpg|jpeg|gif|webp|svg))}{https://raw.githubusercontent.com/labring/sealos/main$2}gi' ./README.md
+      - name: Update image description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ vars.D_REGISTRY_REPOSITORY }}
+          password: ${{ secrets.D_REGISTRY_TOKEN }}
+          repository: labring/kubernetes-docker
+          readme-filepath: ./README.md
+          enable-url-completion: true
+
   add-tips:
     if: contains(github.event.comment.body, 'imagebuild')
     needs:
@@ -121,6 +141,6 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            🤖 says: Hooray! The action autobuild-k8s-cri-o-part3 has been completed successfully. 🎉
+            🤖 says: Hooray! The action autobuild-k8s-docker-part5 has been completed successfully. 🎉
 
             See: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

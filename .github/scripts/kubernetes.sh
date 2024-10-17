@@ -199,8 +199,7 @@ if [[ amd64 == "$ARCH" ]]; then
   if [[ unstable == "$RELEASE" ]]; then
     dpkg-query --search "$(command -v containerd)" "$(command -v docker)"
     sudo apt-get remove -y moby-buildx moby-cli moby-compose moby-containerd moby-engine \
-      docker docker-ce docker-ce-cli docker-engine docker.io containerd containerd.io \
-      podman &>/dev/null
+      docker docker-ce docker-ce-cli docker-engine docker.io containerd containerd.io &>/dev/null
     sudo rm -rf /var/run/docker.sock /run/containerd/containerd.sock
     sudo mv -fv /etc/cni/net.d/* /etc/cni
     sudo systemctl unmask "${CRI_TYPE//-/}" || true
