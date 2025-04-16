@@ -107,25 +107,6 @@ jobs:
           password: ${{ secrets.D_REGISTRY_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh
-      - name: Checkout Sealos
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          repository: labring/sealos
-          ref: main
-      - name: Update Sealos README
-        run: |
-          sed -i "s@\./@https://github.com/labring/sealos/blob/main/@g" ./README.md
-          sed -i "s@(/docs@(https://github.com/labring/sealos/blob/main/docs@g" ./README.md
-          perl -i -pe 's{(https://github\.com/labring/sealos/blob/main)(.*?\.(png|jpg|jpeg|gif|webp|svg))}{https://raw.githubusercontent.com/labring/sealos/main$2}gi' ./README.md
-      - name: Update image description
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ vars.D_REGISTRY_REPOSITORY }}
-          password: ${{ secrets.D_REGISTRY_TOKEN }}
-          repository: labring/kubernetes
-          readme-filepath: ./README.md
-          enable-url-completion: true
 
   add-tips:
     if: contains(github.event.comment.body, 'imagebuild')
