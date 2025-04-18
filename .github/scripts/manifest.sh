@@ -55,6 +55,20 @@ if [[ "${kube_major//./}" -ge 126 ]]; then
 fi
 
 case $CRI_TYPE in
+containerd | cri-o)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 124 ]]; then
+    echo "INFO::skip $KUBE(kube<1.24) when $SEALOS(sealos>=5)"
+    exit
+  fi
+  ;;
+docker)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 126 ]]; then
+    echo "INFO::skip $KUBE(kube<1.26) when $SEALOS(sealos>=5)"
+    exit
+  fi
+  ;;
+esac
+case $CRI_TYPE in
 containerd)
   IMAGE_KUBE=kubernetes
   ;;
@@ -96,20 +110,6 @@ for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
     echo "${IMAGE_NAME%:*}:$tag"
   done | xargs sudo buildah manifest create --all "mf:${KUBE%+*}-$SEALOS" || exit $ERR_CODE
   if [[ $(sudo buildah inspect "mf:${KUBE%+*}-$SEALOS" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -eq 2 ]]; then
-    case $CRI_TYPE in
-    containerd | cri-o)
-      if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 124 ]]; then
-        echo "INFO::skip $KUBE(kube<1.24) when $SEALOS(sealos>=5)"
-        continue
-      fi
-      ;;
-    docker)
-      if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 126 ]]; then
-        echo "INFO::skip $KUBE(kube<1.26) when $SEALOS(sealos>=5)"
-        continue
-      fi
-      ;;
-    esac
     if sudo buildah login -u labring -p "$1" docker.io; then
       IMAGE_NAME="docker.io/labring/${IMAGE_NAME##*/}"
     else
