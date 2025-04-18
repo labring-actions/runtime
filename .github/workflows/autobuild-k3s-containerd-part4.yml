@@ -12,8 +12,8 @@ on:
 env:
   part: 4
   allBuild: false
-  registry: ${{ vars.D_REGISTRY_NAME }}
-  repo: ${{ vars.D_REGISTRY_REPOSITORY }}
+  registry: ghcr.io
+  repo: ${{ github.repository }}
   sealosPatch: ${{ github.event.inputs.sealosPatch }}
   criType: containerd
   kubeType: k3s
@@ -78,8 +78,8 @@ jobs:
 
       - name: Auto build image
         env:
-          username: ${{ vars.D_REGISTRY_REPOSITORY }}
-          password: ${{ secrets.D_REGISTRY_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           arch: ${{ matrix.arch }}
           kubeVersion: ${{ matrix.version }}
         run: .github/scripts/kubernetes.sh
@@ -104,10 +104,10 @@ jobs:
         run: .github/scripts/download.sh
       - name: Manifest Image
         env:
-          username: ${{ vars.D_REGISTRY_REPOSITORY }}
-          password: ${{ secrets.D_REGISTRY_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
-        run: .github/scripts/manifest.sh
+        run: .github/scripts/manifest.sh ${{ secrets.D_REGISTRY_TOKEN }}
 
   add-tips:
     if: contains(github.event.comment.body, 'imagebuild')
