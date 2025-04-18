@@ -15,6 +15,7 @@ readonly IMAGE_CACHE_NAME="ghcr.io/labring-actions/cache"
 
 readonly IMAGE_TAG=${version?}
 readonly KUBE="${IMAGE_TAG%%-*}"
+readonly KUBE_XY="${KUBE%.*}"
 if [[ "$sealoslatest" == latest ]]; then
   export sealosPatch="ghcr.io/labring/sealos-patch:latest"
   sealoslatest=$(until curl -sL "https://api.github.com/repos/labring/sealos/releases/latest" | grep tarball_url; do sleep 3; done | awk -F\" '{print $(NF-1)}' | awk -F/ '{print $NF}' | cut -dv -f2)
@@ -53,6 +54,20 @@ if [[ "${kube_major//./}" -ge 126 ]]; then
   esac
 fi
 
+case $CRI_TYPE in
+containerd | cri-o)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 124 ]]; then
+    echo "INFO::skip $KUBE(kube<1.24) when $SEALOS(sealos>=5)"
+    exit
+  fi
+  ;;
+docker)
+  if [[ "${SEALOS_XYZ%%.*}" -ge 5 ]] && ! [[ "${KUBE_XY//./}" -ge 126 ]]; then
+    echo "INFO::skip $KUBE(kube<1.26) when $SEALOS(sealos>=5)"
+    exit
+  fi
+  ;;
+esac
 case $CRI_TYPE in
 containerd)
   IMAGE_KUBE=kubernetes
@@ -95,6 +110,12 @@ for IMAGE_NAME in "${IMAGE_PUSH_NAME[@]}"; do
     echo "${IMAGE_NAME%:*}:$tag"
   done | xargs sudo buildah manifest create --all "mf:${KUBE%+*}-$SEALOS" || exit $ERR_CODE
   if [[ $(sudo buildah inspect "mf:${KUBE%+*}-$SEALOS" | yq .manifests[].platform.architecture | uniq | grep 64 -c) -eq 2 ]]; then
+    if sudo buildah login -u labring -p "$1" docker.io; then
+      IMAGE_NAME="docker.io/labring/${IMAGE_NAME##*/}"
+    else
+      echo "warning: Please input REGISTRY_TOKEN for docker.io"
+      continue
+    fi
     sudo buildah manifest push --rm --all "mf:${KUBE%+*}-$SEALOS" "docker://$IMAGE_NAME" && echo "$IMAGE_NAME push success"
   else
     sudo buildah manifest inspect "mf:${KUBE%+*}-$SEALOS" | yq -CP
