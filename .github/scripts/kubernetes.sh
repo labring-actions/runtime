@@ -297,7 +297,11 @@ echo "SEALOS_STATUS => $SEALOS_RUN"
             fi
             ;;
           *)
-            echo "$IMAGE_NAME" >>"/tmp/$IMAGE_HUB_REGISTRY.v$KUBE-$ARCH.images"
+            if sudo buildah pull "$IMAGE_NAME" &>/dev/null && grep "$KUBE" <<<"${IMAGE_NAME##*:}" &>/dev/null; then
+              echo "$IMAGE_NAME already existed"
+            else
+              echo "$IMAGE_NAME" >>"/tmp/$IMAGE_HUB_REGISTRY.v$KUBE-$ARCH.images"
+            fi
             ;;
           esac
         else

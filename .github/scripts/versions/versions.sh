@@ -57,7 +57,7 @@ for file in $(pwd)/.github/versions/${part:-*}/CHANGELOG*; do
       echo "$vKUBE" >>".versions/$K8S_MD"
     else
       case $IMAGE_HUB_REGISTRY in
-      docker.io)
+      docker.io | ghcr.io)
         if until curl -sL "https://hub.docker.com/v2/repositories/$IMAGE_HUB_REPO/$IMAGE_KUBE/tags/$vKUBE-$SEALOS"; do sleep 3; done |
           grep digest >/dev/null; then
           echo "$IMAGE_HUB_REGISTRY/$IMAGE_HUB_REPO/$IMAGE_KUBE:$vKUBE-$SEALOS already existed"
