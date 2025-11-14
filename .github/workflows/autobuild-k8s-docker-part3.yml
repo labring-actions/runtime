@@ -81,7 +81,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           arch: ${{ matrix.arch }}
           kubeVersion: ${{ matrix.version }}
-        run: .github/scripts/kubernetes.sh
+        run: | 
+          bash +x .github/scripts/kubernetes.sh
 
   build_manifest:
     needs:
