@@ -107,21 +107,3 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh ${{ secrets.D_REGISTRY_TOKEN }}
-
-  add-tips:
-    if: contains(github.event.comment.body, 'imagebuild')
-    needs:
-      - build_manifest
-    name: Auto add tips
-    runs-on: ubuntu-24.04
-    permissions:
-      issues: write
-    steps:
-      - name: Success Commit
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            🤖 says: Hooray! The action autobuild-k8s-docker-part3 has been completed successfully. 🎉
-
-            See: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
