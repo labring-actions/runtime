@@ -4,7 +4,7 @@ on:
     inputs:
       sealosPatch:
         description: 'sealos patch image for development.'
-        required: true
+        required: false
         default: ghcr.io/labring/sealos-patch:latest
   issue_comment:
     types:
@@ -14,11 +14,10 @@ env:
   allBuild: false
   registry: ghcr.io
   repo: ${{ github.repository }}
-  sealosPatch: ""
+  sealosPatch: ${{ github.event.inputs.sealosPatch }}
   criType: docker
 jobs:
   resolve-issue-sealoslatest:
-    if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/docker') || startswith(github.event.comment.body, '/single_part3') || startswith(github.event.comment.body, '/single_docker_part3') || contains(github.event.inputs.sealosPatch, 'sealos')
     runs-on: ubuntu-24.04
     outputs:
       sealoslatest: ${{ steps.set-sealoslatest.outputs.sealoslatest }}
@@ -81,8 +80,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           arch: ${{ matrix.arch }}
           kubeVersion: ${{ matrix.version }}
-        run: | 
-          bash +x .github/scripts/kubernetes.sh
+        run: github/scripts/kubernetes.sh
 
   build_manifest:
     needs:

@@ -4,7 +4,7 @@ on:
     inputs:
       sealosPatch:
         description: 'sealos patch image for development.'
-        required: true
+        required: false
         default: ghcr.io/labring/sealos-patch:latest
   issue_comment:
     types:
@@ -18,7 +18,6 @@ env:
   criType: containerd
 jobs:
   resolve-issue-sealoslatest:
-    if: startswith(github.event.comment.body, '/kube') || startswith(github.event.comment.body, '/containerd') || startswith(github.event.comment.body, '/single_part3') || startswith(github.event.comment.body, '/single_containerd_part3') || contains(github.event.inputs.sealosPatch, 'sealos')
     runs-on: ubuntu-24.04
     outputs:
       sealoslatest: ${{ steps.set-sealoslatest.outputs.sealoslatest }}
@@ -107,20 +106,3 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           version: ${{ matrix.version }}-${{ env.sealoslatest }}
         run: .github/scripts/manifest.sh ${{ secrets.D_REGISTRY_TOKEN }}
-  add-tips:
-    if: contains(github.event.comment.body, 'imagebuild')
-    needs:
-      - build_manifest
-    name: Auto add tips
-    runs-on: ubuntu-24.04
-    permissions:
-      issues: write
-    steps:
-      - name: Success Commit
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            🤖 says: Hooray! The action autobuild-k8s-containerd-part3 has been completed successfully. 🎉
-            
-            See: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
