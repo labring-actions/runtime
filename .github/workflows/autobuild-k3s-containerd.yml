@@ -9,9 +9,13 @@ on:
         description: 'exec part.3,4,5'
         required: true
         default: 5
+      allbuild:
+        description: 'build all images'
+        required: true
+        default: false
 env:
   part: ${{ github.event.inputs.part }}
-  allBuild: false
+  allBuild: ${{ github.event.inputs.allbuild }}
   registry: ghcr.io
   repo: ${{ github.repository }}
   sealosPatch: ${{ github.event.inputs.sealosPatch }}
