@@ -3,9 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       sealosPatch:
-        description: 'sealos patch image for development.'
+        description: 'sealos patch image for development.eg.ghcr.io/labring/sealos-patch:latest'
         required: false
-        default: ghcr.io/labring/sealos-patch:latest
       part:
         description: 'exec part.1,2,3,4,5'
         required: true
