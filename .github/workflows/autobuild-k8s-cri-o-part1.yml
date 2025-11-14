@@ -1,4 +1,4 @@
-name: cri-o for k8s part${{ github.event.inputs.part }}
+name: cri-o for k8s autobuild
 on:
   workflow_dispatch:
     inputs:

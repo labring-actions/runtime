@@ -1,4 +1,4 @@
-name: containerd for k8s part${{ github.event.inputs.part }}
+name: containerd for k8s autobuild
 on:
   workflow_dispatch:
     inputs:

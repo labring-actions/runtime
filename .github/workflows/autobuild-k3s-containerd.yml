@@ -1,4 +1,4 @@
-name: containerd for k3s part${{ github.event.inputs.part }}
+name: containerd for k3s autobuild
 on:
   workflow_dispatch:
     inputs:
