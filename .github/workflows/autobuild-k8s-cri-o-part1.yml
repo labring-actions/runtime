@@ -1,4 +1,4 @@
-name: cri-o for k8s 1.20
+name: cri-o for k8s part${{ github.event.inputs.part }}
 on:
   workflow_dispatch:
     inputs:
@@ -6,11 +6,12 @@ on:
         description: 'sealos patch image for development.'
         required: false
         default: ghcr.io/labring/sealos-patch:latest
-  issue_comment:
-    types:
-      - created
+      part:
+        description: 'exec part.1,2,3,4,5'
+        required: true
+        default: 0
 env:
-  part: 1
+  part: ${{ github.event.inputs.part }}
   allBuild: false
   registry: ghcr.io
   repo: ${{ github.repository }}

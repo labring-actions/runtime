@@ -1,4 +1,4 @@
-name: docker for k8s 1.30+
+name: containerd for k3s part${{ github.event.inputs.part }}
 on:
   workflow_dispatch:
     inputs:
@@ -6,16 +6,18 @@ on:
         description: 'sealos patch image for development.'
         required: false
         default: ghcr.io/labring/sealos-patch:latest
-  issue_comment:
-    types:
-      - created
+      part:
+        description: 'exec part.3,4,5'
+        required: true
+        default: 5
 env:
-  part: 5
+  part: ${{ github.event.inputs.part }}
   allBuild: false
   registry: ghcr.io
   repo: ${{ github.repository }}
   sealosPatch: ${{ github.event.inputs.sealosPatch }}
-  criType: docker
+  criType: containerd
+  kubeType: k3s
 jobs:
   resolve-issue-sealoslatest:
     runs-on: ubuntu-24.04
