@@ -14,7 +14,7 @@ env:
   allBuild: false
   registry: ghcr.io
   repo: ${{ github.repository }}
-  sealosPatch: ${{ github.event.inputs.sealosPatch }}
+  sealosPatch: ""
   criType: docker
 jobs:
   resolve-issue-sealoslatest:
