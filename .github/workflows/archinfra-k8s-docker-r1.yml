@@ -1,0 +1,162 @@
+name: Archinfra Kubernetes Docker Runtime r1
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "archinfra/**"
+      - "docker/**"
+      - "registry/**"
+      - "k8s/**"
+      - ".github/workflows/archinfra-k8s-docker-r1.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "archinfra/releases/v1.36.4-r1.env"
+      - "archinfra/scripts/**"
+      - "docker/**"
+      - "registry/**"
+      - "k8s/**"
+      - ".github/workflows/archinfra-k8s-docker-r1.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: archinfra-kubernetes-runtime-v1.36.4-r1
+  cancel-in-progress: false
+
+env:
+  RELEASE_FILE: ${{ github.workspace }}/archinfra/releases/v1.36.4-r1.env
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deterministic runtime release
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n archinfra/scripts/build-k8s-docker.sh
+          source archinfra/releases/v1.36.4-r1.env
+          test "$RELEASE_VERSION" = "v1.36.4-r1"
+          test "$ARCH" = "amd64"
+          test "$RUNTIME_PROFILE" = "docker"
+          test "$KUBERNETES_VERSION" = "1.36.4"
+          test "$SEALOS_VERSION" = "5.1.1"
+          test "$DOCKER_VERSION" = "28.5.2"
+          test "$SEALOS_CACHE_DIGEST" != ""
+          test "$DOCKER_CACHE_DIGEST" != ""
+          test "$CRICTL_CACHE_DIGEST" != ""
+          test "$KUBERNETES_CACHE_DIGEST" != ""
+          echo "release lock validation OK"
+
+  build:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install deterministic build host tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            buildah \
+            skopeo \
+            jq \
+            file \
+            uidmap \
+            fuse-overlayfs
+          buildah --version
+          skopeo --version
+          jq --version
+
+      - name: Build and publish Cluster Image to GHCR
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash archinfra/scripts/build-k8s-docker.sh
+
+      - name: Mirror verified Runtime image to Alibaba Cloud ACR
+        if: ${{ vars.PUBLISH_ALIYUN == 'true' }}
+        shell: bash
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALIYUN_REGISTRY: ${{ vars.ALIYUN_REGISTRY }}
+          ALIYUN_NAMESPACE: ${{ vars.ALIYUN_NAMESPACE }}
+          ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
+          ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          source archinfra/releases/v1.36.4-r1.env
+          PROVENANCE="out/runtime-v1.36.4-r1.provenance.env"
+          test -s "$PROVENANCE"
+
+          : "${ALIYUN_REGISTRY:?organization variable ALIYUN_REGISTRY is required}"
+          : "${ALIYUN_NAMESPACE:?organization variable ALIYUN_NAMESPACE is required}"
+          : "${ALIYUN_USERNAME:?organization secret ALIYUN_USERNAME is required}"
+          : "${ALIYUN_PASSWORD:?organization secret ALIYUN_PASSWORD is required}"
+
+          ALIYUN_IMAGE="${ALIYUN_REGISTRY}/${ALIYUN_NAMESPACE}/kubernetes-runtime:${RELEASE_VERSION}-${ARCH}"
+
+          SRC_DIGEST="$(skopeo inspect \
+            --creds "$GHCR_USER:$GHCR_TOKEN" \
+            "docker://$FINAL_IMAGE" | jq -r '.Digest')"
+          test "$SRC_DIGEST" = "$(grep '^FINAL_DIGEST=' "$PROVENANCE" | cut -d= -f2-)"
+
+          echo "Mirroring:"
+          echo "  source: $FINAL_IMAGE@$SRC_DIGEST"
+          echo "  target: $ALIYUN_IMAGE"
+
+          skopeo copy \
+            --all \
+            --preserve-digests \
+            --src-creds "$GHCR_USER:$GHCR_TOKEN" \
+            --dest-creds "$ALIYUN_USERNAME:$ALIYUN_PASSWORD" \
+            "docker://$FINAL_IMAGE" \
+            "docker://$ALIYUN_IMAGE"
+
+          DST_DIGEST="$(skopeo inspect \
+            --creds "$ALIYUN_USERNAME:$ALIYUN_PASSWORD" \
+            "docker://$ALIYUN_IMAGE" | jq -r '.Digest')"
+
+          if [[ "$DST_DIGEST" != "$SRC_DIGEST" ]]; then
+            echo "ERROR: Aliyun ACR digest mismatch: source=$SRC_DIGEST target=$DST_DIGEST" >&2
+            exit 1
+          fi
+
+          cat >> "$PROVENANCE" <<EOF
+          ALIYUN_MIRROR_STATUS=VERIFIED
+          ALIYUN_REGISTRY=$ALIYUN_REGISTRY
+          ALIYUN_NAMESPACE=$ALIYUN_NAMESPACE
+          ALIYUN_IMAGE=$ALIYUN_IMAGE
+          ALIYUN_DIGEST=$DST_DIGEST
+          EOF
+
+          {
+            echo "## Alibaba Cloud ACR mirror"
+            echo
+            echo "- Image: \`$ALIYUN_IMAGE\`"
+            echo "- Digest: \`$DST_DIGEST\`"
+            echo "- Status: VERIFIED"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Aliyun ACR mirror VERIFIED: $ALIYUN_IMAGE@$DST_DIGEST"
+
+      - name: Upload runtime provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubernetes-runtime-v1.36.4-r1-provenance
+          path: out/
+          if-no-files-found: warn

@@ -14,6 +14,11 @@
 # limitations under the License.
 cd "$(dirname "$0")" >/dev/null 2>&1 || exit
 source common.sh
+
+# docker.service expects docker group and containerd runtime binaries.
+# k8s 1.36 + cri-dockerd requires a complete docker runtime stack.
+getent group docker >/dev/null 2>&1 || groupadd -r docker
+
 if ! command_exists docker; then
   lsb_dist=$(get_distribution)
   lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
@@ -30,10 +35,16 @@ if ! command_exists docker; then
   tar --strip-components=1 -zxvf ../cri/docker.tgz -C /usr/bin
   # shellcheck disable=SC2046
   chmod a+x $(tar -tf ../cri/docker.tgz | while read -r binary; do echo "/usr/bin/${binary##*/}"; done | xargs)
+
+  # verify required runtime binaries exist before starting docker
+  command_exists containerd || { echo "containerd binary missing"; exit 1; }
+  command_exists containerd-shim-runc-v2 || { echo "containerd-shim-runc-v2 binary missing"; exit 1; }
+
   systemctl enable docker.service
   systemctl restart docker.service
   cp ../etc/daemon.json /etc/docker
 fi
+
 systemctl daemon-reload
 systemctl restart docker.service
 check_status docker
